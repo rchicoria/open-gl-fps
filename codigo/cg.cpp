@@ -17,12 +17,19 @@
 /*
  *	Variáveis e constantes globais
  */
+// Geral
 GLfloat xC = 1.0, yC = 1.0, zC = 1.0;
 GLint wScreen = 800;
 GLint hScreen = 600;
 GLint msec = 10;
 
-GLfloat   colorAmbient[4] = {0.1,0.1,0.1,1};
+// Câmara
+GLfloat anguloH = 0;
+GLfloat anguloV = 0;
+GLfloat obsP[] = {0, 0, 1};
+
+// Luz ambiente
+GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
 GLfloat localCor[4] ={0.4, 0.4, 0.4, 1.0};
 GLfloat localPos[4] ={0, 1.0, 0, 1.0};
 GLfloat localAttCon =1.0;
@@ -38,6 +45,8 @@ void init(void)
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
 	
 	glEnable(GL_LIGHT0);
 	glLightfv(GL_LIGHT0, GL_POSITION, localPos);
@@ -109,9 +118,10 @@ void display(void)
 	gluPerspective(104, wScreen/hScreen, 0.01, zC*2);
 	
 	// Camara
+	GLfloat obsL [] = {cos(anguloH-3.14/2)+obsP[0], 0 ,sin(anguloH-3.14/2)+obsP[2]};
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0, 0.5, 0, 0,0,0, 0, 0, -1);
+	gluLookAt(obsP[0], obsP[1], obsP[2], obsL[0], obsL[1], obsL[2], 0, 1, 0);
 	
 	// Objectos do cenário
 	cenario(PERSPECTIVE);
@@ -125,6 +135,36 @@ void display(void)
  */
 void keyboard(unsigned char key, int x, int y)
 {
+	switch (key)
+	{
+		case 'a':
+		case 'A':
+			obsP[2]+=0.1*cos(anguloH+3.14/2);
+			obsP[0]-=0.1*sin(anguloH+3.14/2);
+			break;
+			
+		case 'd':
+		case 'D':
+			obsP[2]-=0.1*cos(anguloH+3.14/2);
+			obsP[0]+=0.1*sin(anguloH+3.14/2);
+			break;
+			
+		case 'w':
+		case 'W':
+			obsP[2]-=0.1*cos(anguloH);
+			obsP[0]+=0.1*sin(anguloH);
+			break;
+			
+		case 's':
+		case 'S':
+			obsP[2]+=0.1*cos(anguloH);
+			obsP[0]-=0.1*sin(anguloH);
+			break;
+			
+		case 27:
+			exit(0);
+			break;
+	}
 }
 
 /*
@@ -132,6 +172,28 @@ void keyboard(unsigned char key, int x, int y)
  */
 void teclasNotAscii(int key, int x, int y)
 {
+	switch (key)
+	{
+		case GLUT_KEY_LEFT:
+			anguloH-=0.1;
+			break;
+			
+		case GLUT_KEY_RIGHT:
+			anguloH+=0.1;
+			break;
+			
+		case GLUT_KEY_UP:
+			
+			break;
+			
+		case GLUT_KEY_DOWN:
+			
+			break;
+			
+		default:
+			break;
+	}
+	glutPostRedisplay();
 }
 
 /*
