@@ -1,0 +1,2 @@
+g++ -o cg cg.cpp -lglut -lGL -lGLU
+./cg
