@@ -44,6 +44,28 @@ GLfloat localAttCon =1.0;
 GLfloat localAttLin =0.05;
 GLfloat localAttQua =0.0;
 
+// Texturas
+GLuint texture[10];
+
+/*
+ *	Cria as várias texturas
+ */
+void textures()
+{
+	glGenTextures(1, &texture[4]);
+	glBindTexture(GL_TEXTURE_2D, texture[4]);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	imag.LoadBmpFile("img/chao.bmp");
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	imag.GetNumCols(),
+		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		imag.ImageData());
+}
+
 /*
  *	Inicialização dos parâmetros
  */
@@ -62,6 +84,8 @@ void init(void)
     glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
     glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
     glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
+    
+    textures();
 }
 
 /*
@@ -91,6 +115,19 @@ void cenario(int view)
         glRotatef(0,0,1,0);
 		glutSolidSphere(0.05, 100, 100);
 	glPopMatrix();
+	
+	// Chão
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[4]);
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3i( 0,  0, 0 ); 
+			glTexCoord2f(10.0f,0.0f); glVertex3i( xC, 0, 0 ); 
+			glTexCoord2f(10.0f,10.0f); glVertex3i( xC, 0, xC); 
+			glTexCoord2f(0.0f,10.0f); glVertex3i( 0,  0,  xC); 
+		glEnd();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
 	
 	// Eixos
 	glColor4f(0.0, 0.0, 0.0, 1.0);
@@ -139,7 +176,7 @@ void display(void)
 }
 
 /*
- *	Controlo para as teclas com letras
+ *	Controlo para as teclas com letras quando são premidas
  */
 void keyPress(unsigned char key, int x, int y)
 {
@@ -169,40 +206,11 @@ void keyPress(unsigned char key, int x, int y)
 			exit(0);
 			break;
 	}
-	/*
-	switch (key)
-	{
-		case 'a':
-		case 'A':
-			obsP[2]+=0.1*cos(anguloH+3.14/2);
-			obsP[0]-=0.1*sin(anguloH+3.14/2);
-			break;
-			
-		case 'd':
-		case 'D':
-			obsP[2]-=0.1*cos(anguloH+3.14/2);
-			obsP[0]+=0.1*sin(anguloH+3.14/2);
-			break;
-			
-		case 'w':
-		case 'W':
-			obsP[2]-=0.1*cos(anguloH);
-			obsP[0]+=0.1*sin(anguloH);
-			break;
-			
-		case 's':
-		case 'S':
-			obsP[2]+=0.1*cos(anguloH);
-			obsP[0]-=0.1*sin(anguloH);
-			break;
-			
-		case 27:
-			exit(0);
-			break;
-	}
-	*/
 }
 
+/*
+ *	Controlo para as teclas com letras quando são largadas
+ */
 void keyUp(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -230,18 +238,18 @@ void keyUp(unsigned char key, int x, int y)
 }
 
 void mouseMovement(int x, int y) {
-	int diffx = x-lastx; //check the difference between the current x and the last x position
-	int diffy = y-lasty; //check the difference between the current y and the last y position
-	lastx = x; //set lastx to the current x position
-	lasty = y; //set lasty to the current y position
-	anguloV -= (float) diffy*0.01; //set the xrot to xrot with the addition of the difference in the y position
-	anguloH += (float) diffx*0.01;// set the xrot to yrot with the addition of the difference in the x position
+	int diffx = x-lastx;
+	int diffy = y-lasty;
+	lastx = x;
+	lasty = y;
+	anguloV -= (float) diffy*0.01;
+	anguloH += (float) diffx*0.01;
 }
 
 /*
  *	Controlo para as teclas que não sejam com letras
  */
-void teclasNotAscii(int key, int x, int y)
+/*void teclasNotAscii(int key, int x, int y)
 {
 	switch (key)
 	{
@@ -265,7 +273,7 @@ void teclasNotAscii(int key, int x, int y)
 			break;
 	}
 	glutPostRedisplay();
-}
+}*/
 
 /*
  *	Timer
@@ -311,7 +319,7 @@ int main(int argc, char** argv)
   
 	init();
 	
-	glutSpecialFunc(teclasNotAscii);
+	//glutSpecialFunc(teclasNotAscii);
 	glutKeyboardFunc(keyPress);
 	glutKeyboardUpFunc(keyUp);
 	glutPassiveMotionFunc(mouseMovement);
