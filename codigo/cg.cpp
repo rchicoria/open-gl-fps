@@ -11,6 +11,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+#include "RgbImage.hpp"
 
 #define PERSPECTIVE 0
 
@@ -35,6 +36,7 @@ bool frente = false;
 bool direita = false;
 bool atras = false;
 bool esquerda = false;
+GLfloat vel = 0.02;
 
 // Luz ambiente
 GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
@@ -46,12 +48,33 @@ GLfloat localAttQua =0.0;
 
 // Texturas
 GLuint texture[10];
+RgbImage imag;
+
+// Nevoeiro
+GLuint fogMode[] = { GL_EXP, GL_EXP2, GL_LINEAR };
+GLuint fogfilter = 1;					// Which Fog To Use
+GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f};		// Fog Color
 
 /*
  *	Cria as várias texturas
  */
 void textures()
 {
+	// Parede
+	glGenTextures(1, &texture[2]);
+	glBindTexture(GL_TEXTURE_2D, texture[2]);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	imag.LoadBmpFile("img/parede.bmp");
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	imag.GetNumCols(),
+		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		imag.ImageData());	
+	
+	// Chão
 	glGenTextures(1, &texture[4]);
 	glBindTexture(GL_TEXTURE_2D, texture[4]);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
@@ -86,6 +109,15 @@ void init(void)
     glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
     
     textures();
+	
+	// Nevoeiro
+	glFogi(GL_FOG_MODE, fogMode[fogfilter]);
+	glFogfv(GL_FOG_COLOR, {0.5f, 0.5f, 0.5f, 1.0f});
+	glFogf(GL_FOG_DENSITY, 0.25f);
+	glHint(GL_FOG_HINT, GL_DONT_CARE);
+	glFogf(GL_FOG_START, 3.0f);
+	glFogf(GL_FOG_END, 10.0f);
+	glEnable(GL_FOG);
 }
 
 /*
@@ -106,43 +138,80 @@ void cenario(int view)
 	// Objectos para teste
 	glPushMatrix();
 		glColor4f(0.0, 1.0, 0.0, 1.0);
-		glTranslatef(0, 0, 0);
+		glTranslatef(0, 0.5, 0);
 		glutSolidTeapot(0.1);
 	glPopMatrix();
 	glPushMatrix();
 		glColor4f(0.0, 1.0, 1.0, 1.0);
-		glTranslatef(-0.2, 0, 0.15);
+		glTranslatef(-0.2, 1, 0.15);
         glRotatef(0,0,1,0);
 		glutSolidSphere(0.05, 100, 100);
 	glPopMatrix();
+	
+	// Parede z = 20
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[2]);
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3i( -2*xC, 0, -2*xC); 
+			glTexCoord2f(3.0f,0.0f); glVertex3i( 2*xC, 0, -2*xC); 
+			glTexCoord2f(3.0f,3.0f); glVertex3i( 2*xC, yC*4, -2*xC); 
+			glTexCoord2f(0.0f,3.0f); glVertex3i( -2*xC, yC*4, -2*xC); 
+		glEnd();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+	
+	// Parede z = -20
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[2]);
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3i( -2*xC, 0, 2*xC); 
+			glTexCoord2f(3.0f,0.0f); glVertex3i( 2*xC, 0, 2*xC); 
+			glTexCoord2f(3.0f,3.0f); glVertex3i( 2*xC, yC*4, 2*xC); 
+			glTexCoord2f(0.0f,3.0f); glVertex3i( -2*xC, yC*4, 2*xC); 
+		glEnd();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+	
+	// Parede x = 20
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[2]);
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3i( 2*xC, 0, -2*xC); 
+			glTexCoord2f(3.0f,0.0f); glVertex3i( 2*xC, 0, 2*xC); 
+			glTexCoord2f(3.0f,3.0f); glVertex3i( 2*xC, yC*4, 2*xC); 
+			glTexCoord2f(0.0f,3.0f); glVertex3i( 2*xC, yC*4, -2*xC); 
+		glEnd();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+	
+	// Parede x = -20
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[2]);
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3i( -2*xC, 0, -2*xC); 
+			glTexCoord2f(3.0f,0.0f); glVertex3i( -2*xC, 0, 2*xC); 
+			glTexCoord2f(3.0f,3.0f); glVertex3i( -2*xC, yC*4, 2*xC); 
+			glTexCoord2f(0.0f,3.0f); glVertex3i( -2*xC, yC*4, -2*xC); 
+		glEnd();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
 	
 	// Chão
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,texture[4]);
 	glPushMatrix();
 		glBegin(GL_QUADS);
-			glTexCoord2f(0.0f,0.0f); glVertex3i( 0,  0, 0 ); 
-			glTexCoord2f(10.0f,0.0f); glVertex3i( xC, 0, 0 ); 
-			glTexCoord2f(10.0f,10.0f); glVertex3i( xC, 0, xC); 
-			glTexCoord2f(0.0f,10.0f); glVertex3i( 0,  0,  xC); 
+			glTexCoord2f(0.0f,0.0f); glVertex3i( -2*xC, 0, -2*xC ); 
+			glTexCoord2f(10.0f,0.0f); glVertex3i( 2*xC, 0, -2*xC ); 
+			glTexCoord2f(10.0f,10.0f); glVertex3i( 2*xC, 0, 2*xC); 
+			glTexCoord2f(0.0f,10.0f); glVertex3i( -2*xC, 0,  2*xC); 
 		glEnd();
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
-	
-	// Eixos
-	glColor4f(0.0, 0.0, 0.0, 1.0);
-	glBegin(GL_LINES);
-		glVertex3i( -xC, 0, 0); 
-		glVertex3i(xC, 0, 0); 
-	glEnd();
-	glBegin(GL_LINES);
-		glVertex3i(0, -yC, 0); 
-		glVertex3i(0, yC, 0); 
-	glEnd();
-	glBegin(GL_LINES);
-		glVertex3i( 0, 0, -zC); 
-		glVertex3i( 0, 0,zC); 
-	glEnd();
 }
 
 /*
@@ -160,7 +229,7 @@ void display(void)
 	// Projecção
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(80, wScreen/hScreen, 0.1, zC*2);
+	gluPerspective(70, wScreen/hScreen, 0.1, zC*10);
 	
 	// Camara
 	GLfloat obsL [] = {cos(anguloH-3.14/2)+obsP[0], obsP[1]+anguloV, sin(anguloH-3.14/2)+obsP[2]};
@@ -286,23 +355,23 @@ void Timer(int value)
 	// Movimento
 	if (frente)
 	{
-		obsP[2]-=0.01*cos(anguloH);
-		obsP[0]+=0.01*sin(anguloH);
+		obsP[2] -= vel * cos(anguloH);
+		obsP[0] += vel * sin(anguloH);
 	}
 	if (atras)
 	{
-		obsP[2]+=0.01*cos(anguloH);
-		obsP[0]-=0.01*sin(anguloH);
+		obsP[2] += vel * cos(anguloH);
+		obsP[0] -= vel * sin(anguloH);
 	}
 	if (esquerda)
 	{
-		obsP[2]+=0.01*cos(anguloH+3.14/2);
-		obsP[0]-=0.01*sin(anguloH+3.14/2);
+		obsP[2] += vel * cos(anguloH + 3.14/2);
+		obsP[0] -= vel * sin(anguloH + 3.14/2);
 	}
 	if (direita)
 	{
-		obsP[2]-=0.01*cos(anguloH+3.14/2);
-		obsP[0]+=0.01*sin(anguloH+3.14/2);
+		obsP[2] -= vel * cos(anguloH + 3.14/2);
+		obsP[0] += vel * sin(anguloH + 3.14/2);
 	}
 }
 

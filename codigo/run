@@ -1,2 +1,2 @@
-g++ -o cg cg.cpp -lglut -lGL -lGLU
+g++ -o cg cg.cpp RgbImage.cpp -lglut -lGL -lGLU
 ./cg
