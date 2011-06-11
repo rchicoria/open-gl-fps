@@ -26,7 +26,15 @@ GLint msec = 10;
 // Câmara
 GLfloat anguloH = 0;
 GLfloat anguloV = 0;
-GLfloat obsP[] = {0, 0, 1};
+GLfloat obsP[] = {0, 0.3, 1};
+GLint lastx = wScreen/2;
+GLint lasty = hScreen/2;
+
+// Controlos
+bool frente = false;
+bool direita = false;
+bool atras = false;
+bool esquerda = false;
 
 // Luz ambiente
 GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
@@ -115,10 +123,10 @@ void display(void)
 	// Projecção
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(104, wScreen/hScreen, 0.01, zC*2);
+	gluPerspective(80, wScreen/hScreen, 0.1, zC*2);
 	
 	// Camara
-	GLfloat obsL [] = {cos(anguloH-3.14/2)+obsP[0], 0 ,sin(anguloH-3.14/2)+obsP[2]};
+	GLfloat obsL [] = {cos(anguloH-3.14/2)+obsP[0], obsP[1]+anguloV, sin(anguloH-3.14/2)+obsP[2]};
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(obsP[0], obsP[1], obsP[2], obsL[0], obsL[1], obsL[2], 0, 1, 0);
@@ -133,8 +141,35 @@ void display(void)
 /*
  *	Controlo para as teclas com letras
  */
-void keyboard(unsigned char key, int x, int y)
+void keyPress(unsigned char key, int x, int y)
 {
+	switch (key)
+	{
+		case 'a':
+		case 'A':
+			esquerda = true;
+			break;
+			
+		case 'd':
+		case 'D':
+			direita = true;
+			break;
+			
+		case 'w':
+		case 'W':
+			frente = true;
+			break;
+			
+		case 's':
+		case 'S':
+			atras = true;
+			break;
+			
+		case 27:
+			exit(0);
+			break;
+	}
+	/*
 	switch (key)
 	{
 		case 'a':
@@ -165,6 +200,42 @@ void keyboard(unsigned char key, int x, int y)
 			exit(0);
 			break;
 	}
+	*/
+}
+
+void keyUp(unsigned char key, int x, int y)
+{
+	switch (key)
+	{
+		case 'a':
+		case 'A':
+			esquerda = false;
+			break;
+			
+		case 'd':
+		case 'D':
+			direita = false;
+			break;
+			
+		case 'w':
+		case 'W':
+			frente = false;
+			break;
+			
+		case 's':
+		case 'S':
+			atras = false;
+			break;
+	}
+}
+
+void mouseMovement(int x, int y) {
+	int diffx = x-lastx; //check the difference between the current x and the last x position
+	int diffy = y-lasty; //check the difference between the current y and the last y position
+	lastx = x; //set lastx to the current x position
+	lasty = y; //set lasty to the current y position
+	anguloV -= (float) diffy*0.01; //set the xrot to xrot with the addition of the difference in the y position
+	anguloH += (float) diffx*0.01;// set the xrot to yrot with the addition of the difference in the x position
 }
 
 /*
@@ -175,19 +246,19 @@ void teclasNotAscii(int key, int x, int y)
 	switch (key)
 	{
 		case GLUT_KEY_LEFT:
-			anguloH-=0.1;
+			anguloH -= 0.1;
 			break;
 			
 		case GLUT_KEY_RIGHT:
-			anguloH+=0.1;
+			anguloH += 0.1;
 			break;
 			
 		case GLUT_KEY_UP:
-			
+			anguloV += 0.1;
 			break;
 			
 		case GLUT_KEY_DOWN:
-			
+			anguloV -= 0.1;
 			break;
 			
 		default:
@@ -203,6 +274,28 @@ void Timer(int value)
 {
 	glutPostRedisplay();
 	glutTimerFunc(msec,Timer, 1);
+	
+	// Movimento
+	if (frente)
+	{
+		obsP[2]-=0.01*cos(anguloH);
+		obsP[0]+=0.01*sin(anguloH);
+	}
+	if (atras)
+	{
+		obsP[2]+=0.01*cos(anguloH);
+		obsP[0]-=0.01*sin(anguloH);
+	}
+	if (esquerda)
+	{
+		obsP[2]+=0.01*cos(anguloH+3.14/2);
+		obsP[0]-=0.01*sin(anguloH+3.14/2);
+	}
+	if (direita)
+	{
+		obsP[2]-=0.01*cos(anguloH+3.14/2);
+		obsP[0]+=0.01*sin(anguloH+3.14/2);
+	}
 }
 
 /*
@@ -219,7 +312,9 @@ int main(int argc, char** argv)
 	init();
 	
 	glutSpecialFunc(teclasNotAscii);
-	glutKeyboardFunc(keyboard);
+	glutKeyboardFunc(keyPress);
+	glutKeyboardUpFunc(keyUp);
+	glutPassiveMotionFunc(mouseMovement);
 	glutDisplayFunc(display); 
 	glutReshapeFunc(resizeWindow);
 	glutTimerFunc(msec, Timer, 1);
