@@ -23,21 +23,22 @@
 GLfloat xC = 1.0, yC = 1.0, zC = 1.0;
 GLint wScreen = 800;
 GLint hScreen = 600;
+GLint wExtra = 0;
+GLint hExtra = 0;
 GLint msec = 10;
 
 // Câmara
 GLfloat anguloH = 0;
 GLfloat anguloV = 0;
-GLfloat obsP[] = {0, 0.3, 1};
-GLint lastx = wScreen/2;
-GLint lasty = hScreen/2;
+GLfloat obsP[] = {0, 0.5, 1};
 
 // Controlos
 bool frente = false;
 bool direita = false;
 bool atras = false;
 bool esquerda = false;
-GLfloat vel = 0.02;
+GLfloat vel = 0.03;
+bool fullscreen = true;
 
 // Luz ambiente
 GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
@@ -95,7 +96,8 @@ void textures()
  */
 void init(void)
 {
-	glutSetCursor(GLUT_CURSOR_NONE); 
+	glutSetCursor(GLUT_CURSOR_NONE);
+	glutFullScreen();
 	
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_TEXTURE_2D);
@@ -128,8 +130,19 @@ void init(void)
  */
 void resizeWindow(GLsizei w, GLsizei h)
 {
- 	wScreen = w;
-	hScreen = h;
+	float ratio = (float)wScreen/(float)hScreen;
+	if ((float)w/(float)h > ratio)
+	{
+		wScreen = wScreen * (float)h/(float)hScreen;
+		hScreen = h;
+		wExtra = w - wScreen;
+	}
+	else
+	{
+		hScreen = hScreen * (float)w/(float)wScreen;
+		wScreen = w;
+		hExtra = h - hScreen;
+	}
 	glutPostRedisplay();
 }
 
@@ -248,10 +261,10 @@ void display(void)
 {
 	// Apaga a imagem antiga
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.92, 0.92, 0.92, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	
 	// Janela de visualização
-	glViewport(0, 0, wScreen, hScreen);
+	glViewport(wExtra/2, hExtra/2, wScreen, hScreen);
 	
 	// Projecção
 	glMatrixMode(GL_PROJECTION);
@@ -268,7 +281,7 @@ void display(void)
 	cenario(PERSPECTIVE);
 	
 	// Minimapa
-	glViewport (0, 0, 200, 200);
+	glViewport (wExtra/2, hExtra/2, 200, 200);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
     glOrtho (-xC, xC, -yC, yC, -zC, zC);
@@ -318,7 +331,23 @@ void keyPress(unsigned char key, int x, int y)
 			atras = true;
 			break;
 			
-		case 27:
+		case 'f':
+		case 'F':
+			if (fullscreen)
+			{
+				glutReshapeWindow(800, 600);
+				wExtra = 0;
+				hExtra = 0;
+				fullscreen = false;
+			}
+			else
+			{
+				glutFullScreen();
+				fullscreen = true;
+			}
+			break;
+			
+		case 27: // Esq
 			exit(0);
 			break;
 	}
