@@ -25,12 +25,22 @@ GLint wScreen = 800;
 GLint hScreen = 600;
 GLint wExtra = 0;
 GLint hExtra = 0;
+GLfloat factorResize = 1.0;
 GLint msec = 10;
+
+// Edifício  salaX[] = {x0, z0, x1, z1}
+GLfloat alturaEdificio = 2.5;
+GLfloat sala1[] = {-2, 2, 2, -2};
+GLfloat sala12[] = {-0.35, -2, 0.35, -2.1};
+GLfloat sala2[] = {-2, -2.1, 2, -5};
+GLfloat sala23[] = {2, -3.25, 2.1, -3.95};
+GLfloat sala3[] = {2.1, 2, 11, -5};
 
 // Câmara
 GLfloat anguloH = 0;
 GLfloat anguloV = 0;
 GLfloat obsP[] = {0, 0.5, 1};
+GLfloat velCamara = 0.003;
 
 // Controlos
 bool frente = false;
@@ -54,14 +64,42 @@ RgbImage imag;
 
 // Nevoeiro
 GLuint fogMode[] = { GL_EXP, GL_EXP2, GL_LINEAR };
-GLuint fogfilter = 1;					// Which Fog To Use
-GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f};		// Fog Color
+GLuint fogfilter = 2;
+GLfloat fogColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
 /*
  *	Cria as várias texturas
  */
 void textures()
 {
+	// Preto
+	glGenTextures(1, &texture[0]);
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	imag.LoadBmpFile("img/preto.bmp");
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	imag.GetNumCols(),
+		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		imag.ImageData());
+	
+	// Branco
+	glGenTextures(1, &texture[1]);
+	glBindTexture(GL_TEXTURE_2D, texture[1]);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	imag.LoadBmpFile("img/branco.bmp");
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	imag.GetNumCols(),
+		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		imag.ImageData());
+	
 	// Parede
 	glGenTextures(1, &texture[2]);
 	glBindTexture(GL_TEXTURE_2D, texture[2]);
@@ -74,7 +112,21 @@ void textures()
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
 	imag.GetNumCols(),
 		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());	
+		imag.ImageData());
+	
+	// Madeira
+	glGenTextures(1, &texture[3]);
+	glBindTexture(GL_TEXTURE_2D, texture[3]);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	imag.LoadBmpFile("img/madeira.bmp");
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	imag.GetNumCols(),
+		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		imag.ImageData());
 	
 	// Chão
 	glGenTextures(1, &texture[4]);
@@ -118,10 +170,10 @@ void init(void)
 	// Nevoeiro
 	glFogi(GL_FOG_MODE, fogMode[fogfilter]);
 	glFogfv(GL_FOG_COLOR, fogColor);
-	glFogf(GL_FOG_DENSITY, 0.25f);
-	glHint(GL_FOG_HINT, GL_DONT_CARE);
-	glFogf(GL_FOG_START, 3.0f);
-	glFogf(GL_FOG_END, 10.0f);
+	glFogf(GL_FOG_DENSITY, 0.2f);
+	//glHint(GL_FOG_HINT, GL_NICEST);
+	glFogf(GL_FOG_START, 10.0f);
+	glFogf(GL_FOG_END, 15.0f);
 	glEnable(GL_FOG);
 }
 
@@ -136,14 +188,126 @@ void resizeWindow(GLsizei w, GLsizei h)
 		wScreen = wScreen * (float)h/(float)hScreen;
 		hScreen = h;
 		wExtra = w - wScreen;
+		factorResize = (float)h/600.0;
 	}
 	else
 	{
 		hScreen = hScreen * (float)w/(float)wScreen;
 		wScreen = w;
 		hExtra = h - hScreen;
+		factorResize = (float)w/800.0;
 	}
 	glutPostRedisplay();
+}
+
+float mod(float n)
+{
+	if (n == 0)
+		return 0.0;
+	return sqrt(n*n);
+}
+
+/*
+ *	Cria uma parede com textura com base no ponto do canto inf. esq. e canto sup. dir.
+ */
+void criaParede(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3f( x0, y0, z0); 
+			glTexCoord2f(mod(x0-x1)+mod(z0-z1),0.0f); glVertex3f( x1, y0, z1); 
+			glTexCoord2f(mod(x0-x1)+mod(z0-z1),mod(y0-y1)); glVertex3f( x1, y1, z1); 
+			glTexCoord2f(0.0f,mod(y0-y1)); glVertex3f( x0, y1, z0);
+		glEnd();
+	glPopMatrix();
+}
+
+/*
+ *	Cria um tecto com textura com base no ponto do canto inf. esq. e canto sup. dir.
+ */
+ void criaHorizontal(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3f( x0, y0, z0); 
+			glTexCoord2f(0.0f,mod(z0-z1)); glVertex3f( x0, y0, z1); 
+			glTexCoord2f(mod(x0-x1)+mod(y0-y1),mod(z0-z1)); glVertex3f( x1, y1, z1); 
+			glTexCoord2f(mod(x0-x1)+mod(y0-y1),0.0f); glVertex3f( x1, y1, z0);
+		glEnd();
+	glPopMatrix();
+}
+
+/*
+ *	Desenha as paredes, chão e tecto do pavilhão
+ */
+void edificio()
+{
+	glEnable(GL_TEXTURE_2D);
+	
+	// Chão e tecto
+	glBindTexture(GL_TEXTURE_2D,texture[4]);
+	criaHorizontal(sala1[0], 0, sala1[1], sala3[2], 0, sala3[3]);
+	criaHorizontal(sala1[0], alturaEdificio, sala1[1], sala2[2], alturaEdificio, sala2[3]);
+	criaHorizontal(sala3[0], alturaEdificio+1.5, sala3[1], sala3[2], alturaEdificio+1.5, sala3[3]);
+	
+	// Sala 1
+	glBindTexture(GL_TEXTURE_2D,texture[2]);
+	criaParede(sala1[0], 0, sala1[3], sala12[0], 1.25, sala1[3]);
+	criaParede(sala12[2], 0, sala1[3], sala1[2], 1.25, sala1[3]);
+	criaParede(sala1[0], 1.25, sala1[3], sala1[2], alturaEdificio, sala1[3]);
+	criaParede(sala1[0], 0, sala1[1], sala1[2], alturaEdificio, sala1[1]);
+	criaParede(sala1[0], 0, sala1[3], sala1[0], alturaEdificio, sala1[1]);
+	criaParede(sala1[2], 0, sala1[3], sala1[2], alturaEdificio, sala1[1]);
+	
+	// Sala 1 <-> Sala 2
+	glBindTexture(GL_TEXTURE_2D,texture[3]);
+	criaParede(sala12[0], 0, sala12[1], sala12[0], 1.25, sala12[3]);
+	criaParede(sala12[2], 0, sala12[1], sala12[2], 1.25, sala12[3]);
+	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
+	
+	// Sala 2
+	glBindTexture(GL_TEXTURE_2D,texture[2]);
+	criaParede(sala2[0], 0, sala2[1], sala12[0], 1.25, sala2[1]);
+	criaParede(sala12[2], 0, sala2[1], sala2[2], 1.25, sala2[1]);
+	criaParede(sala2[0], 1.25, sala2[1], sala2[2], alturaEdificio, sala2[1]);
+	criaParede(sala2[0], 0, sala2[3], sala2[2], alturaEdificio, sala2[3]);
+	criaParede(sala2[0], 0, sala2[1], sala2[0], alturaEdificio, sala2[3]);
+	criaParede(sala2[2], 1.25, sala2[1], sala2[2], alturaEdificio, sala2[3]);
+	criaParede(sala2[2], 0, sala2[1], sala2[2], 1.25, sala23[1]);
+	criaParede(sala2[2], 0, sala23[3], sala2[2], 1.25, sala2[3]);
+	
+	// Sala 2 <-> Sala 3
+	glBindTexture(GL_TEXTURE_2D,texture[3]);
+	criaParede(sala23[0], 0, sala23[1], sala23[2], 1.25, sala23[1]);
+	criaParede(sala23[0], 0, sala23[3], sala23[2], 1.25, sala23[3]);
+	criaHorizontal(sala23[0], 1.25, sala23[1], sala23[2], 1.25, sala23[3]);
+	
+	// Sala 3
+	glBindTexture(GL_TEXTURE_2D,texture[2]);
+	criaParede(sala3[0], 1.25, sala3[1], sala3[0], alturaEdificio+1.5, sala3[3]);
+	criaParede(sala3[0], 0, sala3[1], sala3[0], 1.25, sala23[1]);
+	criaParede(sala3[0], 0, sala23[3], sala3[0], 1.25, sala3[3]);
+	criaParede(sala3[0], 0, sala3[1], sala3[2], alturaEdificio+1.5, sala3[1]);
+	criaParede(sala3[0], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[3]);
+	criaParede(sala3[2], 0, sala3[1], sala3[2], alturaEdificio+1.5, sala3[3]);
+	
+	glDisable(GL_TEXTURE_2D);
+}
+
+void mapa()
+{
+	glEnable(GL_TEXTURE_2D);
+	
+	glBindTexture(GL_TEXTURE_2D,texture[0]);
+	criaHorizontal(sala1[0]-0.1, -0.1, sala1[1]+0.1, sala3[2]+0.1, -0.1, sala3[3]-0.1); // Chão
+	glBindTexture(GL_TEXTURE_2D,texture[1]);
+	criaHorizontal(sala1[0], 0, sala1[1], sala1[2], 0, sala1[3]); // Sala 1
+	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]); // Sala 1 <-> Sala 2
+	criaHorizontal(sala2[0], 0, sala2[1], sala2[2], 0, sala2[3]); // Sala 2
+	criaHorizontal(sala23[0], 1.25, sala23[1], sala23[2], 1.25, sala23[3]); // Sala 2 <-> Sala 3
+	criaHorizontal(sala3[0], 0, sala3[1], sala3[2], 0, sala3[3]); // Sala 3
+	
+	glDisable(GL_TEXTURE_2D);
 }
 
 /*
@@ -164,70 +328,10 @@ void cenario(int view)
 		glutSolidSphere(0.05, 100, 100);
 	glPopMatrix();
 	
-	// Parede z = 20
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	glPushMatrix();
-		glBegin(GL_QUADS);
-			glTexCoord2f(0.0f,0.0f); glVertex3i( -2*xC, 0, -2*xC); 
-			glTexCoord2f(3.0f,0.0f); glVertex3i( 2*xC, 0, -2*xC); 
-			glTexCoord2f(3.0f,3.0f); glVertex3i( 2*xC, yC*4, -2*xC); 
-			glTexCoord2f(0.0f,3.0f); glVertex3i( -2*xC, yC*4, -2*xC); 
-		glEnd();
-	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);
-	
-	// Parede z = -20
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	glPushMatrix();
-		glBegin(GL_QUADS);
-			glTexCoord2f(0.0f,0.0f); glVertex3i( -2*xC, 0, 2*xC); 
-			glTexCoord2f(3.0f,0.0f); glVertex3i( 2*xC, 0, 2*xC); 
-			glTexCoord2f(3.0f,3.0f); glVertex3i( 2*xC, yC*4, 2*xC); 
-			glTexCoord2f(0.0f,3.0f); glVertex3i( -2*xC, yC*4, 2*xC); 
-		glEnd();
-	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);
-	
-	// Parede x = 20
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	glPushMatrix();
-		glBegin(GL_QUADS);
-			glTexCoord2f(0.0f,0.0f); glVertex3i( 2*xC, 0, -2*xC); 
-			glTexCoord2f(3.0f,0.0f); glVertex3i( 2*xC, 0, 2*xC); 
-			glTexCoord2f(3.0f,3.0f); glVertex3i( 2*xC, yC*4, 2*xC); 
-			glTexCoord2f(0.0f,3.0f); glVertex3i( 2*xC, yC*4, -2*xC); 
-		glEnd();
-	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);
-	
-	// Parede x = -20
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	glPushMatrix();
-		glBegin(GL_QUADS);
-			glTexCoord2f(0.0f,0.0f); glVertex3i( -2*xC, 0, -2*xC); 
-			glTexCoord2f(3.0f,0.0f); glVertex3i( -2*xC, 0, 2*xC); 
-			glTexCoord2f(3.0f,3.0f); glVertex3i( -2*xC, yC*4, 2*xC); 
-			glTexCoord2f(0.0f,3.0f); glVertex3i( -2*xC, yC*4, -2*xC); 
-		glEnd();
-	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);
-	
-	// Chão
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,texture[4]);
-	glPushMatrix();
-		glBegin(GL_QUADS);
-			glTexCoord2f(0.0f,0.0f); glVertex3i( -2*xC, 0, -2*xC ); 
-			glTexCoord2f(10.0f,0.0f); glVertex3i( 2*xC, 0, -2*xC ); 
-			glTexCoord2f(10.0f,10.0f); glVertex3i( 2*xC, 0, 2*xC); 
-			glTexCoord2f(0.0f,10.0f); glVertex3i( -2*xC, 0,  2*xC); 
-		glEnd();
-	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);
+	if (view == PERSPECTIVE)
+		edificio();
+	else
+		mapa();
 	
 	// Ponto do mapa
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -236,7 +340,7 @@ void cenario(int view)
 		    glColor4f(0.0, 0.0, 0.0, 1.0);
 		    glTranslatef(obsP[0],obsP[1],obsP[2]);
 		    glRotatef(180-anguloH*57, 0,1,0);
-		    glutSolidCone(0.03, 0.1, 20, 20);
+		    glutSolidCone(0.06, 0.2, 20, 20);
 	    glPopMatrix();
 	}
 }
@@ -269,7 +373,7 @@ void display(void)
 	// Projecção
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(70, wScreen/hScreen, 0.1, zC*10);
+	gluPerspective(70, wScreen/hScreen, 0.1, zC*15);
 	
 	// Camara
 	GLfloat obsL [] = {cos(anguloH-3.14/2)+obsP[0], obsP[1]+anguloV, sin(anguloH-3.14/2)+obsP[2]};
@@ -281,13 +385,13 @@ void display(void)
 	cenario(PERSPECTIVE);
 	
 	// Minimapa
-	glViewport (wExtra/2, hExtra/2, 200, 200);
+	glViewport (wExtra/2, hExtra/2, wScreen/6, wScreen/6);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-    glOrtho (-xC, xC, -yC, yC, -zC, zC);
+    glOrtho (-xC*2.5, xC*2.5, -yC*2.5, yC*2.5, -zC, zC);
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(obsP[0], 0.5, obsP[2], obsP[0], 0, obsP[2], sin(anguloH), 0, -cos(anguloH));
+	gluLookAt(obsP[0], obsP[1], obsP[2], obsP[0], 0, obsP[2], sin(anguloH), 0, -cos(anguloH));
 	cenario(MAP);
 	
 	// Arma
@@ -388,10 +492,12 @@ void keyUp(unsigned char key, int x, int y)
 void mouseMovement(int x, int y) {
 	int diffx = x - wScreen/2;
 	int diffy = y - hScreen/2;
-	anguloV -= (float) diffy * 0.01;
-	anguloH += (float) diffx * 0.01;
-	if (anguloV > 3.0) anguloV = 3.0;
-	if (anguloV < -3.0) anguloV = -3.0;
+	anguloV -= (float) diffy * velCamara;
+	anguloH += (float) diffx * velCamara;
+	if (anguloV > 3.0)
+		anguloV = 3.0;
+	if (anguloV < -3.0)
+		anguloV = -3.0;
 }
 
 /*
@@ -402,23 +508,23 @@ void Timer(int value)
 	// Movimento
 	if (frente)
 	{
-		obsP[2] -= vel * cos(anguloH);
-		obsP[0] += vel * sin(anguloH);
+		obsP[2] -= vel * cos(anguloH) * factorResize;
+		obsP[0] += vel * sin(anguloH) * factorResize;
 	}
 	if (atras)
 	{
-		obsP[2] += vel * cos(anguloH);
-		obsP[0] -= vel * sin(anguloH);
+		obsP[2] += vel * cos(anguloH) * factorResize;
+		obsP[0] -= vel * sin(anguloH) * factorResize;
 	}
 	if (esquerda)
 	{
-		obsP[2] += vel * cos(anguloH + 3.14/2);
-		obsP[0] -= vel * sin(anguloH + 3.14/2);
+		obsP[2] += vel * cos(anguloH + 3.14/2) * factorResize;
+		obsP[0] -= vel * sin(anguloH + 3.14/2) * factorResize;
 	}
 	if (direita)
 	{
-		obsP[2] -= vel * cos(anguloH + 3.14/2);
-		obsP[0] += vel * sin(anguloH + 3.14/2);
+		obsP[2] -= vel * cos(anguloH + 3.14/2) * factorResize;
+		obsP[0] += vel * sin(anguloH + 3.14/2) * factorResize;
 	}
 	
 	// Rato
