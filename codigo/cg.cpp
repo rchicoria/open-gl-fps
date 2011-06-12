@@ -14,6 +14,7 @@
 #include "RgbImage.hpp"
 
 #define PERSPECTIVE 0
+#define MAP 1
 
 /*
  *	Variáveis e constantes globais
@@ -22,21 +23,22 @@
 GLfloat xC = 1.0, yC = 1.0, zC = 1.0;
 GLint wScreen = 800;
 GLint hScreen = 600;
+GLint wExtra = 0;
+GLint hExtra = 0;
 GLint msec = 10;
 
 // Câmara
 GLfloat anguloH = 0;
 GLfloat anguloV = 0;
-GLfloat obsP[] = {0, 0.3, 1};
-GLint lastx = wScreen/2;
-GLint lasty = hScreen/2;
+GLfloat obsP[] = {0, 0.5, 1};
 
 // Controlos
 bool frente = false;
 bool direita = false;
 bool atras = false;
 bool esquerda = false;
-GLfloat vel = 0.02;
+GLfloat vel = 0.03;
+bool fullscreen = true;
 
 // Luz ambiente
 GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
@@ -94,6 +96,9 @@ void textures()
  */
 void init(void)
 {
+	glutSetCursor(GLUT_CURSOR_NONE);
+	glutFullScreen();
+	
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
@@ -125,8 +130,19 @@ void init(void)
  */
 void resizeWindow(GLsizei w, GLsizei h)
 {
- 	wScreen = w;
-	hScreen = h;
+	float ratio = (float)wScreen/(float)hScreen;
+	if ((float)w/(float)h > ratio)
+	{
+		wScreen = wScreen * (float)h/(float)hScreen;
+		hScreen = h;
+		wExtra = w - wScreen;
+	}
+	else
+	{
+		hScreen = hScreen * (float)w/(float)wScreen;
+		wScreen = w;
+		hExtra = h - hScreen;
+	}
 	glutPostRedisplay();
 }
 
@@ -212,6 +228,30 @@ void cenario(int view)
 		glEnd();
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
+	
+	// Ponto do mapa
+	glClear(GL_DEPTH_BUFFER_BIT);
+	if(view==MAP){
+	    glPushMatrix();
+		    glColor4f(0.0, 0.0, 0.0, 1.0);
+		    glTranslatef(obsP[0],obsP[1],obsP[2]);
+		    glRotatef(180-anguloH*57, 0,1,0);
+		    glutSolidCone(0.03, 0.1, 20, 20);
+	    glPopMatrix();
+	}
+}
+
+void arma()
+{
+	/* Neste momento desenha um cubo vermelho
+	glPushMatrix();
+		glColor4f(1.0, 0.0, 0.0, 1.0);
+		glTranslatef(0, 0, 0);
+        glRotatef(3.14,0,1,0);
+        glRotatef(45,1,0,0);
+		glutSolidCube(1);
+	glPopMatrix();
+	*/
 }
 
 /*
@@ -221,10 +261,10 @@ void display(void)
 {
 	// Apaga a imagem antiga
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.92, 0.92, 0.92, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	
 	// Janela de visualização
-	glViewport(0, 0, wScreen, hScreen);
+	glViewport(wExtra/2, hExtra/2, wScreen, hScreen);
 	
 	// Projecção
 	glMatrixMode(GL_PROJECTION);
@@ -239,6 +279,26 @@ void display(void)
 	
 	// Objectos do cenário
 	cenario(PERSPECTIVE);
+	
+	// Minimapa
+	glViewport (wExtra/2, hExtra/2, 200, 200);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+    glOrtho (-xC, xC, -yC, yC, -zC, zC);
+    glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(obsP[0], 0.5, obsP[2], obsP[0], 0, obsP[2], sin(anguloH), 0, -cos(anguloH));
+	cenario(MAP);
+	
+	// Arma
+	glViewport (wScreen/2, 0, wScreen/2, hScreen/2);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+    glOrtho (-xC, xC, -yC, yC, -zC, zC);
+    glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(0.1, 0.2, 0.2, 1.0, 0.5, 0.5, 0, -1, 0);
+	arma();
 	
 	// Actualiza
 	glutSwapBuffers();
@@ -271,7 +331,23 @@ void keyPress(unsigned char key, int x, int y)
 			atras = true;
 			break;
 			
-		case 27:
+		case 'f':
+		case 'F':
+			if (fullscreen)
+			{
+				glutReshapeWindow(800, 600);
+				wExtra = 0;
+				hExtra = 0;
+				fullscreen = false;
+			}
+			else
+			{
+				glutFullScreen();
+				fullscreen = true;
+			}
+			break;
+			
+		case 27: // Esq
 			exit(0);
 			break;
 	}
@@ -306,52 +382,23 @@ void keyUp(unsigned char key, int x, int y)
 	}
 }
 
-void mouseMovement(int x, int y) {
-	int diffx = x-lastx;
-	int diffy = y-lasty;
-	lastx = x;
-	lasty = y;
-	anguloV -= (float) diffy*0.01;
-	anguloH += (float) diffx*0.01;
-}
-
 /*
- *	Controlo para as teclas que não sejam com letras
+ *	Controlo da câmara com o rato
  */
-/*void teclasNotAscii(int key, int x, int y)
-{
-	switch (key)
-	{
-		case GLUT_KEY_LEFT:
-			anguloH -= 0.1;
-			break;
-			
-		case GLUT_KEY_RIGHT:
-			anguloH += 0.1;
-			break;
-			
-		case GLUT_KEY_UP:
-			anguloV += 0.1;
-			break;
-			
-		case GLUT_KEY_DOWN:
-			anguloV -= 0.1;
-			break;
-			
-		default:
-			break;
-	}
-	glutPostRedisplay();
-}*/
+void mouseMovement(int x, int y) {
+	int diffx = x - wScreen/2;
+	int diffy = y - hScreen/2;
+	anguloV -= (float) diffy * 0.01;
+	anguloH += (float) diffx * 0.01;
+	if (anguloV > 3.0) anguloV = 3.0;
+	if (anguloV < -3.0) anguloV = -3.0;
+}
 
 /*
  *	Timer
  */
 void Timer(int value)
 {
-	glutPostRedisplay();
-	glutTimerFunc(msec,Timer, 1);
-	
 	// Movimento
 	if (frente)
 	{
@@ -373,6 +420,12 @@ void Timer(int value)
 		obsP[2] -= vel * cos(anguloH + 3.14/2);
 		obsP[0] += vel * sin(anguloH + 3.14/2);
 	}
+	
+	// Rato
+	glutWarpPointer(wScreen/2, hScreen/2);
+	
+	glutPostRedisplay();
+	glutTimerFunc(msec,Timer, 1);
 }
 
 /*
@@ -388,7 +441,6 @@ int main(int argc, char** argv)
   
 	init();
 	
-	//glutSpecialFunc(teclasNotAscii);
 	glutKeyboardFunc(keyPress);
 	glutKeyboardUpFunc(keyUp);
 	glutPassiveMotionFunc(mouseMovement);
