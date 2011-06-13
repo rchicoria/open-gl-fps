@@ -39,8 +39,9 @@ GLfloat sala3[] = {2.1, 2, 11, -5};
 // Câmara
 GLfloat anguloH = 0;
 GLfloat anguloV = 0;
-GLfloat obsP[] = {0, 0.5, 1};
+GLfloat obsP[] = {0, 0.6, -4};
 GLfloat velCamara = 0.003;
+GLfloat passo = 0.0;
 
 // Controlos
 bool frente = false;
@@ -175,6 +176,8 @@ void init(void)
 	glFogf(GL_FOG_START, 10.0f);
 	glFogf(GL_FOG_END, 15.0f);
 	glEnable(GL_FOG);
+	
+	glEnable(GL_CULL_FACE);
 }
 
 /*
@@ -246,7 +249,7 @@ void edificio()
 	
 	// Chão e tecto
 	glBindTexture(GL_TEXTURE_2D,texture[4]);
-	criaHorizontal(sala1[0], 0, sala1[1], sala3[2], 0, sala3[3]);
+	criaHorizontal(sala3[2], 0, sala1[1], sala1[0], 0, sala3[3]);
 	criaHorizontal(sala1[0], alturaEdificio, sala1[1], sala2[2], alturaEdificio, sala2[3]);
 	criaHorizontal(sala3[0], alturaEdificio+1.5, sala3[1], sala3[2], alturaEdificio+1.5, sala3[3]);
 	
@@ -255,30 +258,30 @@ void edificio()
 	criaParede(sala1[0], 0, sala1[3], sala12[0], 1.25, sala1[3]);
 	criaParede(sala12[2], 0, sala1[3], sala1[2], 1.25, sala1[3]);
 	criaParede(sala1[0], 1.25, sala1[3], sala1[2], alturaEdificio, sala1[3]);
-	criaParede(sala1[0], 0, sala1[1], sala1[2], alturaEdificio, sala1[1]);
-	criaParede(sala1[0], 0, sala1[3], sala1[0], alturaEdificio, sala1[1]);
+	criaParede(sala1[2], 0, sala1[1], sala1[0], alturaEdificio, sala1[1]);
+	criaParede(sala1[0], 0, sala1[1], sala1[0], alturaEdificio, sala1[3]);
 	criaParede(sala1[2], 0, sala1[3], sala1[2], alturaEdificio, sala1[1]);
 	
 	// Sala 1 <-> Sala 2
 	glBindTexture(GL_TEXTURE_2D,texture[3]);
 	criaParede(sala12[0], 0, sala12[1], sala12[0], 1.25, sala12[3]);
-	criaParede(sala12[2], 0, sala12[1], sala12[2], 1.25, sala12[3]);
+	criaParede(sala12[2], 0, sala12[3], sala12[2], 1.25, sala12[1]);
 	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
 	
 	// Sala 2
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	criaParede(sala2[0], 0, sala2[1], sala12[0], 1.25, sala2[1]);
-	criaParede(sala12[2], 0, sala2[1], sala2[2], 1.25, sala2[1]);
-	criaParede(sala2[0], 1.25, sala2[1], sala2[2], alturaEdificio, sala2[1]);
+	criaParede(sala12[0], 0, sala2[1], sala2[0], 1.25, sala2[1]);
+	criaParede(sala2[2], 0, sala2[1], sala12[2], 1.25, sala2[1]);
+	criaParede(sala2[2], 1.25, sala2[1], sala2[0], alturaEdificio, sala2[1]);
 	criaParede(sala2[0], 0, sala2[3], sala2[2], alturaEdificio, sala2[3]);
 	criaParede(sala2[0], 0, sala2[1], sala2[0], alturaEdificio, sala2[3]);
-	criaParede(sala2[2], 1.25, sala2[1], sala2[2], alturaEdificio, sala2[3]);
-	criaParede(sala2[2], 0, sala2[1], sala2[2], 1.25, sala23[1]);
-	criaParede(sala2[2], 0, sala23[3], sala2[2], 1.25, sala2[3]);
+	criaParede(sala2[2], 1.25, sala2[3], sala2[2], alturaEdificio, sala2[1]);
+	criaParede(sala2[2], 0, sala23[1], sala2[2], 1.25, sala2[1]);
+	criaParede(sala2[2], 0, sala2[3], sala2[2], 1.25, sala23[3]);
 	
 	// Sala 2 <-> Sala 3
 	glBindTexture(GL_TEXTURE_2D,texture[3]);
-	criaParede(sala23[0], 0, sala23[1], sala23[2], 1.25, sala23[1]);
+	criaParede(sala23[2], 0, sala23[1], sala23[0], 1.25, sala23[1]);
 	criaParede(sala23[0], 0, sala23[3], sala23[2], 1.25, sala23[3]);
 	criaHorizontal(sala23[0], 1.25, sala23[1], sala23[2], 1.25, sala23[3]);
 	
@@ -287,11 +290,20 @@ void edificio()
 	criaParede(sala3[0], 1.25, sala3[1], sala3[0], alturaEdificio+1.5, sala3[3]);
 	criaParede(sala3[0], 0, sala3[1], sala3[0], 1.25, sala23[1]);
 	criaParede(sala3[0], 0, sala23[3], sala3[0], 1.25, sala3[3]);
-	criaParede(sala3[0], 0, sala3[1], sala3[2], alturaEdificio+1.5, sala3[1]);
+	criaParede(sala3[2], 0, sala3[1], sala3[0], alturaEdificio+1.5, sala3[1]);
 	criaParede(sala3[0], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[3]);
-	criaParede(sala3[2], 0, sala3[1], sala3[2], alturaEdificio+1.5, sala3[3]);
+	criaParede(sala3[2], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[1]);
 	
 	glDisable(GL_TEXTURE_2D);
+	
+	// Vidro
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glPushMatrix();
+		glColor4f(0.5,1,1,0.5);
+		glTranslatef(sala12[0]+(sala12[2]-sala12[0])/2, 0, sala12[1]);
+		glRectf(sala12[2], 0, sala12[0], 1.25);
+	glPopMatrix();
 }
 
 void mapa()
@@ -299,13 +311,13 @@ void mapa()
 	glEnable(GL_TEXTURE_2D);
 	
 	glBindTexture(GL_TEXTURE_2D,texture[0]);
-	criaHorizontal(sala1[0]-0.1, -0.1, sala1[1]+0.1, sala3[2]+0.1, -0.1, sala3[3]-0.1); // Chão
+	criaHorizontal(sala3[2]+0.1, -0.1, sala1[1]+0.1, sala1[0]-0.1, -0.1, sala3[3]-0.1); // Chão
 	glBindTexture(GL_TEXTURE_2D,texture[1]);
-	criaHorizontal(sala1[0], 0, sala1[1], sala1[2], 0, sala1[3]); // Sala 1
-	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]); // Sala 1 <-> Sala 2
-	criaHorizontal(sala2[0], 0, sala2[1], sala2[2], 0, sala2[3]); // Sala 2
-	criaHorizontal(sala23[0], 1.25, sala23[1], sala23[2], 1.25, sala23[3]); // Sala 2 <-> Sala 3
-	criaHorizontal(sala3[0], 0, sala3[1], sala3[2], 0, sala3[3]); // Sala 3
+	criaHorizontal(sala1[2], 0, sala1[1], sala1[0], 0, sala1[3]); // Sala 1
+	criaHorizontal(sala12[2], 1.25, sala12[1], sala12[0], 1.25, sala12[3]); // Sala 1 <-> Sala 2
+	criaHorizontal(sala2[2], 0, sala2[1], sala2[0], 0, sala2[3]); // Sala 2
+	criaHorizontal(sala23[2], 1.25, sala23[1], sala23[0], 1.25, sala23[3]); // Sala 2 <-> Sala 3
+	criaHorizontal(sala3[2], 0, sala3[1], sala3[0], 0, sala3[3]); // Sala 3
 	
 	glDisable(GL_TEXTURE_2D);
 }
@@ -376,10 +388,10 @@ void display(void)
 	gluPerspective(70, wScreen/hScreen, 0.1, zC*15);
 	
 	// Camara
-	GLfloat obsL [] = {cos(anguloH-3.14/2)+obsP[0], obsP[1]+anguloV, sin(anguloH-3.14/2)+obsP[2]};
+	GLfloat obsL [] = {cos(anguloH-3.14/2)+obsP[0], obsP[1]+anguloV+0.04*sin(passo), sin(anguloH-3.14/2)+obsP[2]};
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(obsP[0], obsP[1], obsP[2], obsL[0], obsL[1], obsL[2], 0, 1, 0);
+	gluLookAt(obsP[0], obsP[1]+0.04*sin(passo), obsP[2], obsL[0], obsL[1], obsL[2], 0, 1, 0);
 	
 	// Objectos do cenário
 	cenario(PERSPECTIVE);
@@ -505,26 +517,38 @@ void mouseMovement(int x, int y) {
  */
 void Timer(int value)
 {
+	int anda = 0;
+	
 	// Movimento
 	if (frente)
 	{
 		obsP[2] -= vel * cos(anguloH) * factorResize;
 		obsP[0] += vel * sin(anguloH) * factorResize;
+		anda = 1;
 	}
 	if (atras)
 	{
 		obsP[2] += vel * cos(anguloH) * factorResize;
 		obsP[0] -= vel * sin(anguloH) * factorResize;
+		anda = 1;
 	}
 	if (esquerda)
 	{
 		obsP[2] += vel * cos(anguloH + 3.14/2) * factorResize;
 		obsP[0] -= vel * sin(anguloH + 3.14/2) * factorResize;
+		anda = 1;
 	}
 	if (direita)
 	{
 		obsP[2] -= vel * cos(anguloH + 3.14/2) * factorResize;
 		obsP[0] += vel * sin(anguloH + 3.14/2) * factorResize;
+		anda = 1;
+	}
+	if (anda > 0)
+	{
+		passo += vel * 5 * factorResize;
+		if (passo > 3.14)
+			passo -= 3.14;
 	}
 	
 	// Rato
