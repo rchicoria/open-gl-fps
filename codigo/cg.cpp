@@ -51,6 +51,7 @@ bool atras = false;
 bool esquerda = false;
 GLfloat vel = 0.03;
 bool fullscreen = true;
+bool text_vidro = true;
 
 // Luz ambiente
 GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
@@ -59,6 +60,7 @@ GLfloat localPos[4] ={0, 1.0, 0, 1.0};
 GLfloat localAttCon =1.0;
 GLfloat localAttLin =0.05;
 GLfloat localAttQua =0.0;
+GLint lampadas[] = {true};
 
 // Texturas
 GLuint texture[10];
@@ -150,9 +152,9 @@ void textures()
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	imag.LoadBmpFile("img/broken_glass.bmp");
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	imag.LoadBmpFile("img/glass.bmp");
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
 	imag.GetNumCols(),
 		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
@@ -203,7 +205,7 @@ void init(void)
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
     
     textures();
-	
+    
 	// Nevoeiro
 	glFogi(GL_FOG_MODE, fogMode[fogfilter]);
 	glFogfv(GL_FOG_COLOR, fogColor);
@@ -244,6 +246,20 @@ float mod(float n)
 	if (n == 0)
 		return 0.0;
 	return sqrt(n*n);
+}
+
+bool iluminaSala(int sala)
+{
+	if (lampadas[sala-1])
+	{
+		glEnable(GL_LIGHT0);
+		return true;
+	}
+	else
+	{
+		glDisable(GL_LIGHT0);
+		return false;
+	}
 }
 
 /*
@@ -308,6 +324,7 @@ void edificio()
 	glEnable(GL_TEXTURE_2D);
 	
 	// Chão e tecto
+	glDisable(GL_LIGHT0);
 	glBindTexture(GL_TEXTURE_2D,texture[4]);
 	criaHorizontal(sala3[2], 0, sala1[1], sala1[0], 0, sala3[3]);
 	criaHorizontal(sala1[0], alturaSala12, sala1[1], sala1[2], alturaSala12, sala1[3]);
@@ -315,6 +332,7 @@ void edificio()
 	criaHorizontal(sala1[0], alturaEdificio+1.5, sala1[1], sala3[2], alturaEdificio+1.5, sala3[3]);
 	
 	// Sala 1
+	iluminaSala(1);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
 	criaParede(sala1[0], 0, sala1[3], sala12[0], 1.25, sala1[3]);
 	criaParede(sala12[2], 0, sala1[3], sala1[2], 1.25, sala1[3]);
@@ -329,6 +347,7 @@ void edificio()
 	criaParede(sala12[2], 0, sala12[3], sala12[2], 1.25, sala12[1]);
 	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
 	
+	glDisable(GL_LIGHT0);
 	// Sala 2
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
 	criaParede(sala12[0], 0, sala2[1], sala2[0], 1.25, sala2[1]);
@@ -361,7 +380,7 @@ void edificio()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4f(1,1,1,0.5);
-    criaParede(sala12[2], 0, sala12[1], sala12[0], 1.25, sala12[1]);
+    criaParedeTexturaUnica(sala12[2], 0, sala12[1], sala12[0], 1.25, sala12[1]);
 	
 	// Aluminio
 	glBindTexture(GL_TEXTURE_2D,texture[6]);
@@ -429,15 +448,19 @@ void criaCaixa(float x, float y, float z, float angulo)
  */
 void cenario(int view)
 {
-	// Iluminação
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, localPos);
+    // Iluminação
+    glLightfv(GL_LIGHT0, GL_POSITION, localPos);
     glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
     glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
     glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
     glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
-    
+	
 	// Objectos para teste
+	if (view == PERSPECTIVE)
+		iluminaSala(1);
+	else
+		glEnable(GL_LIGHT0);
+	
 	glPushMatrix();
 		glColor4f(0.0, 1.0, 0.0, 1.0);
 		glTranslatef(0, 0.5, 0);
@@ -457,6 +480,8 @@ void cenario(int view)
 	criaCaixa(0.55, 0.2, 1.7, 10);
 	criaCaixa(0.7, 0.6, 1.5, 55);
 	
+	glDisable(GL_LIGHT0);
+	
 	if (view == PERSPECTIVE)
 		edificio();
 	else
@@ -472,19 +497,6 @@ void cenario(int view)
 		    glutSolidCone(0.06, 0.2, 20, 20);
 	    glPopMatrix();
 	}
-}
-
-void arma()
-{
-	/* Neste momento desenha um cubo vermelho
-	glPushMatrix();
-		glColor4f(1.0, 0.0, 0.0, 1.0);
-		glTranslatef(0, 0, 0);
-        glRotatef(3.14,0,1,0);
-        glRotatef(45,1,0,0);
-		glutSolidCube(1);
-	glPopMatrix();
-	*/
 }
 
 /*
@@ -525,16 +537,6 @@ void display(void)
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	cenario(MAP);
 	
-	// Arma
-	glViewport (wScreen/2, 0, wScreen/2, hScreen/2);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-    glOrtho (-xC, xC, -yC, yC, -zC, zC);
-    glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(0.1, 0.2, 0.2, 1.0, 0.5, 0.5, 0, -1, 0);
-	arma();
-	
 	// Actualiza
 	glutSwapBuffers();
 }
@@ -565,6 +567,10 @@ void keyPress(unsigned char key, int x, int y)
 		case 'S':
 			atras = true;
 			break;
+		
+		case '1':
+			lampadas[0] = !lampadas[0];
+			break;
 			
 		case 'f':
 		case 'F':
@@ -581,6 +587,43 @@ void keyPress(unsigned char key, int x, int y)
 				fullscreen = true;
 			}
 			break;
+		
+		case 'V':
+		case 'v':
+		    // Vidro
+	        if(text_vidro){
+	            glGenTextures(1, &texture[5]);
+	            glBindTexture(GL_TEXTURE_2D, texture[5]);
+	            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	            imag.LoadBmpFile("img/broken_glass.bmp");
+	            glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	            imag.GetNumCols(),
+		            imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		            imag.ImageData());
+		        text_vidro=false;
+		    }
+		    else {
+	            // Vidro
+	            glGenTextures(1, &texture[5]);
+	            glBindTexture(GL_TEXTURE_2D, texture[5]);
+	            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	            imag.LoadBmpFile("img/glass.bmp");
+	            glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	            imag.GetNumCols(),
+	                imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+	                imag.ImageData());
+	            text_vidro=true;
+	        }
+		            
+		    break;
 			
 		case 27: // Esq
 			exit(0);
