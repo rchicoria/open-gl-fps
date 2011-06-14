@@ -209,8 +209,8 @@ void init(void)
 	glFogfv(GL_FOG_COLOR, fogColor);
 	glFogf(GL_FOG_DENSITY, 0.2f);
 	glHint(GL_FOG_HINT, GL_NICEST);
-	glFogf(GL_FOG_START, 10.0f);
-	glFogf(GL_FOG_END, 15.0f);
+	glFogf(GL_FOG_START, 5.0f);
+	glFogf(GL_FOG_END, 13.0f);
 	glEnable(GL_FOG);
 	
 	glEnable(GL_CULL_FACE);
@@ -419,8 +419,16 @@ void criaCaixa(float x, float y, float z, float angulo)
  */
 void cenario(int view)
 {
+	// Iluminação
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, localPos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
+    
 	// Objectos para teste
-	/*glPushMatrix();
+	glPushMatrix();
 		glColor4f(0.0, 1.0, 0.0, 1.0);
 		glTranslatef(0, 0.5, 0);
 		glutSolidTeapot(0.1);
@@ -430,26 +438,21 @@ void cenario(int view)
 		glTranslatef(-0.2, 1, 0.15);
         glRotatef(0,0,1,0);
 		glutSolidSphere(0.05, 100, 100);
-	glPopMatrix();*/
+	glPopMatrix();
 	
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 	
 	// Objectos
-	glPushMatrix();
 	criaCaixa(1, 0.2, 1.5, 30);
 	criaCaixa(0.55, 0.2, 1.7, 10);
 	criaCaixa(0.7, 0.6, 1.5, 55);
-	glPopMatrix();
 	
-	glPushMatrix();
 	if (view == PERSPECTIVE)
 		edificio();
 	else
 		mapa();
-	glPopMatrix();
 	
 	// Ponto do mapa
-	glPushMatrix();
 	glClear(GL_DEPTH_BUFFER_BIT);
 	if(view==MAP){
 	    glPushMatrix();
@@ -459,7 +462,6 @@ void cenario(int view)
 		    glutSolidCone(0.06, 0.2, 20, 20);
 	    glPopMatrix();
 	}
-	glPopMatrix();
 }
 
 void arma()
@@ -483,15 +485,6 @@ void display(void)
 	// Apaga a imagem antiga
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
-	
-	// Iluminação
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, localPos);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
-    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
-    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
-    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
-    glDisable(GL_LIGHT0);
 	
 	// Janela de visualização
 	glViewport(wExtra/2, hExtra/2, wScreen, hScreen);
@@ -682,7 +675,7 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );
 	glutInitWindowSize (wScreen, hScreen); 
-	glutInitWindowPosition (200, 350); 
+	glutInitWindowPosition (200, 50); 
 	glutCreateWindow ("Projecto CG");
   
 	init();
