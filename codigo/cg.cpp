@@ -194,7 +194,7 @@ void textures()
 void init(void)
 {
 	glutSetCursor(GLUT_CURSOR_NONE);
-	//glutFullScreen();
+	glutFullScreen();
 	
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_TEXTURE_2D);
@@ -205,13 +205,6 @@ void init(void)
     
     textures();
     
-    // Iluminação
-    glLightfv(GL_LIGHT0, GL_POSITION, localPos);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
-    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
-    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
-    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
-	
 	// Nevoeiro
 	glFogi(GL_FOG_MODE, fogMode[fogfilter]);
 	glFogfv(GL_FOG_COLOR, fogColor);
@@ -252,6 +245,20 @@ float mod(float n)
 	if (n == 0)
 		return 0.0;
 	return sqrt(n*n);
+}
+
+bool iluminaSala(int sala)
+{
+	if (lampadas[sala-1])
+	{
+		glEnable(GL_LIGHT0);
+		return true;
+	}
+	else
+	{
+		glDisable(GL_LIGHT0);
+		return false;
+	}
 }
 
 /*
@@ -316,6 +323,7 @@ void edificio()
 	glEnable(GL_TEXTURE_2D);
 	
 	// Chão e tecto
+	glDisable(GL_LIGHT0);
 	glBindTexture(GL_TEXTURE_2D,texture[4]);
 	criaHorizontal(sala3[2], 0, sala1[1], sala1[0], 0, sala3[3]);
 	criaHorizontal(sala1[0], alturaSala12, sala1[1], sala1[2], alturaSala12, sala1[3]);
@@ -323,10 +331,7 @@ void edificio()
 	criaHorizontal(sala1[0], alturaEdificio+1.5, sala1[1], sala3[2], alturaEdificio+1.5, sala3[3]);
 	
 	// Sala 1
-	if (lampadas[0])
-		glEnable(GL_LIGHT0);
-	else
-		glDisable(GL_LIGHT0);
+	iluminaSala(1);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
 	criaParede(sala1[0], 0, sala1[3], sala12[0], 1.25, sala1[3]);
 	criaParede(sala12[2], 0, sala1[3], sala1[2], 1.25, sala1[3]);
@@ -340,6 +345,7 @@ void edificio()
 	criaParede(sala12[0], 0, sala12[1], sala12[0], 1.25, sala12[3]);
 	criaParede(sala12[2], 0, sala12[3], sala12[2], 1.25, sala12[1]);
 	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
+	
 	glDisable(GL_LIGHT0);
 	// Sala 2
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
@@ -418,11 +424,6 @@ void mapa()
  */
 void criaCaixa(float x, float y, float z, float angulo)
 {
-	if (lampadas[0])
-		glEnable(GL_LIGHT0);
-	else
-		glDisable(GL_LIGHT0);
-	
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,texture[7]);
 	GLfloat tamCaixa = 0.2;
@@ -446,17 +447,24 @@ void criaCaixa(float x, float y, float z, float angulo)
  */
 void cenario(int view)
 {
-	// Objectos para teste
-	if (lampadas[0])
-		glEnable(GL_LIGHT0);
-	else
-		glDisable(GL_LIGHT0);
+    // Iluminação
+    glLightfv(GL_LIGHT0, GL_POSITION, localPos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
 	
-	/*glPushMatrix();
+	// Objectos para teste
+	if (view == PERSPECTIVE)
+		iluminaSala(1);
+	else
+		glEnable(GL_LIGHT0);
+	
+	glPushMatrix();
 		glColor4f(0.0, 1.0, 0.0, 1.0);
 		glTranslatef(0, 0.5, 0);
 		glutSolidTeapot(0.1);
-	glPopMatrix();*/
+	glPopMatrix();
 	glPushMatrix();
 		glColor4f(0.0, 1.0, 1.0, 1.0);
 		glTranslatef(-0.2, 1, 0.15);
@@ -470,6 +478,8 @@ void cenario(int view)
 	criaCaixa(1, 0.2, 1.5, 30);
 	criaCaixa(0.55, 0.2, 1.7, 10);
 	criaCaixa(0.7, 0.6, 1.5, 55);
+	
+	glDisable(GL_LIGHT0);
 	
 	if (view == PERSPECTIVE)
 		edificio();
