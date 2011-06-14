@@ -142,6 +142,20 @@ void textures()
 	imag.GetNumCols(),
 		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
 		imag.ImageData());
+	
+	// Caixa
+	glGenTextures(1, &texture[5]);
+	glBindTexture(GL_TEXTURE_2D, texture[5]);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	imag.LoadBmpFile("img/caixa.bmp");
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	imag.GetNumCols(),
+		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		imag.ImageData());
 }
 
 /*
@@ -225,10 +239,22 @@ void criaParede(float x0, float y0, float z0, float x1, float y1, float z1)
 	glPopMatrix();
 }
 
+void criaParedeTexturaUnica(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3f( x0, y0, z0); 
+			glTexCoord2f(1.0f,0.0f); glVertex3f( x1, y0, z1); 
+			glTexCoord2f(1.0f,1.0f); glVertex3f( x1, y1, z1); 
+			glTexCoord2f(0.0f,1.0f); glVertex3f( x0, y1, z0);
+		glEnd();
+	glPopMatrix();
+}
+
 /*
  *	Cria um tecto com textura com base no ponto do canto inf. esq. e canto sup. dir.
  */
- void criaHorizontal(float x0, float y0, float z0, float x1, float y1, float z1)
+void criaHorizontal(float x0, float y0, float z0, float x1, float y1, float z1)
 {
 	glPushMatrix();
 		glBegin(GL_QUADS);
@@ -236,6 +262,18 @@ void criaParede(float x0, float y0, float z0, float x1, float y1, float z1)
 			glTexCoord2f(0.0f,mod(z0-z1)); glVertex3f( x0, y0, z1); 
 			glTexCoord2f(mod(x0-x1)+mod(y0-y1),mod(z0-z1)); glVertex3f( x1, y1, z1); 
 			glTexCoord2f(mod(x0-x1)+mod(y0-y1),0.0f); glVertex3f( x1, y1, z0);
+		glEnd();
+	glPopMatrix();
+}
+
+void criaHorizontalTexturaUnica(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3f( x0, y0, z0); 
+			glTexCoord2f(0.0f,1.0f); glVertex3f( x0, y0, z1); 
+			glTexCoord2f(1.0f,1.0f); glVertex3f( x1, y1, z1); 
+			glTexCoord2f(1.0f,0.0f); glVertex3f( x1, y1, z0);
 		glEnd();
 	glPopMatrix();
 }
@@ -306,6 +344,9 @@ void edificio()
 	glPopMatrix();
 }
 
+/*
+ *	Desenha o mapa
+ */
 void mapa()
 {
 	glEnable(GL_TEXTURE_2D);
@@ -318,6 +359,29 @@ void mapa()
 	criaHorizontal(sala2[2], 0, sala2[1], sala2[0], 0, sala2[3]); // Sala 2
 	criaHorizontal(sala23[2], 1.25, sala23[1], sala23[0], 1.25, sala23[3]); // Sala 2 <-> Sala 3
 	criaHorizontal(sala3[2], 0, sala3[1], sala3[0], 0, sala3[3]); // Sala 3
+	
+	glDisable(GL_TEXTURE_2D);
+}
+
+/*
+ *	Cria uma caixa de madeira
+ */
+void criaCaixa(float x, float y, float z, float angulo)
+{
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[5]);
+	GLfloat tamCaixa = 0.2;
+	
+	glPushMatrix();
+		glTranslatef(x, y, z);
+		glRotatef(angulo,0,1,0);
+		criaParedeTexturaUnica(-tamCaixa, -tamCaixa, -tamCaixa, -tamCaixa, tamCaixa, tamCaixa);
+		criaParedeTexturaUnica(tamCaixa, -tamCaixa, -tamCaixa, -tamCaixa, tamCaixa, -tamCaixa);
+		criaParedeTexturaUnica(-tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa, tamCaixa);
+		criaParedeTexturaUnica(tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa, -tamCaixa);
+		criaHorizontalTexturaUnica(-tamCaixa, tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa);
+		criaHorizontalTexturaUnica(-tamCaixa, -tamCaixa, tamCaixa, tamCaixa, -tamCaixa, -tamCaixa);
+	glPopMatrix();
 	
 	glDisable(GL_TEXTURE_2D);
 }
@@ -339,6 +403,11 @@ void cenario(int view)
         glRotatef(0,0,1,0);
 		glutSolidSphere(0.05, 100, 100);
 	glPopMatrix();
+	
+	// Objectos
+	criaCaixa(1, 0.2, 1.5, 30);
+	criaCaixa(0.55, 0.2, 1.7, 10);
+	criaCaixa(0.7, 0.6, 1.5, 55);
 	
 	if (view == PERSPECTIVE)
 		edificio();
