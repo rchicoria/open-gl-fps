@@ -367,13 +367,19 @@ void edificio()
 	glBindTexture(GL_TEXTURE_2D,texture[6]);
 	glDisable(GL_BLEND);
 	glPushMatrix();
-	    criaParede(sala12[2], 1.2, sala12[1]-0.02, sala12[0], 1.25, sala12[1]-0.02);
-	    criaParede(sala12[2], 0, sala12[1]-0.02, sala12[0], 0.05, sala12[1]-0.02);
-	    criaParede(sala12[2], 1.2, sala12[1]-0.02, sala12[2]-0.05, 1.25, sala12[1]-0.02);
-	    criaParede(sala12[2], 1.2, sala12[1]-0.02, sala12[0], 1.25, sala12[1]-0.02);
-	    
+	    criaParede(sala12[2], 1.2, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
+	    criaParede(sala12[2], 0, sala12[1]-0.005, sala12[0], 0.05, sala12[1]-0.005);
+	    criaParede(sala12[2], 0, sala12[1]-0.005, sala12[2]-0.05, 1.25, sala12[1]-0.005);
+	    criaParede(sala12[0]+0.05, 0, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
+	    glDisable(GL_TEXTURE_2D);
+	    glColor4f(0,0,0,1);
+	    criaParede(sala12[0]+0.055, 0.05, sala12[1], sala12[0]+0.05, 1.25, sala12[1]-0.005);
+	    criaParede(sala12[2]-0.05, 0.05, sala12[1]-0.005, sala12[2]-0.055, 1.25, sala12[1]);
+        criaHorizontal(sala12[0], 1.2, sala12[1], sala12[2], 1.2, sala12[1]-0.005);
+        criaHorizontal(sala12[2], 0.05, sala12[1], sala12[0], 0.05, sala12[1]-0.005);
+	glPopMatrix(); 
 	
-	glDisable(GL_TEXTURE_2D);
+	
 }
 
 /*
