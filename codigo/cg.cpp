@@ -59,6 +59,7 @@ GLfloat localPos[4] ={0, 1.0, 0, 1.0};
 GLfloat localAttCon =1.0;
 GLfloat localAttLin =0.05;
 GLfloat localAttQua =0.0;
+GLint lampadas[] = {true};
 
 // Texturas
 GLuint texture[10];
@@ -193,7 +194,7 @@ void textures()
 void init(void)
 {
 	glutSetCursor(GLUT_CURSOR_NONE);
-	glutFullScreen();
+	//glutFullScreen();
 	
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_TEXTURE_2D);
@@ -203,6 +204,13 @@ void init(void)
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
     
     textures();
+    
+    // Iluminação
+    glLightfv(GL_LIGHT0, GL_POSITION, localPos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
 	
 	// Nevoeiro
 	glFogi(GL_FOG_MODE, fogMode[fogfilter]);
@@ -315,6 +323,10 @@ void edificio()
 	criaHorizontal(sala1[0], alturaEdificio+1.5, sala1[1], sala3[2], alturaEdificio+1.5, sala3[3]);
 	
 	// Sala 1
+	if (lampadas[0])
+		glEnable(GL_LIGHT0);
+	else
+		glDisable(GL_LIGHT0);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
 	criaParede(sala1[0], 0, sala1[3], sala12[0], 1.25, sala1[3]);
 	criaParede(sala12[2], 0, sala1[3], sala1[2], 1.25, sala1[3]);
@@ -328,7 +340,7 @@ void edificio()
 	criaParede(sala12[0], 0, sala12[1], sala12[0], 1.25, sala12[3]);
 	criaParede(sala12[2], 0, sala12[3], sala12[2], 1.25, sala12[1]);
 	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
-	
+	glDisable(GL_LIGHT0);
 	// Sala 2
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
 	criaParede(sala12[0], 0, sala2[1], sala2[0], 1.25, sala2[1]);
@@ -400,6 +412,11 @@ void mapa()
  */
 void criaCaixa(float x, float y, float z, float angulo)
 {
+	if (lampadas[0])
+		glEnable(GL_LIGHT0);
+	else
+		glDisable(GL_LIGHT0);
+	
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,texture[7]);
 	GLfloat tamCaixa = 0.2;
@@ -423,20 +440,17 @@ void criaCaixa(float x, float y, float z, float angulo)
  */
 void cenario(int view)
 {
-	// Iluminação
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, localPos);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
-    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
-    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
-    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
-    
 	// Objectos para teste
-	glPushMatrix();
+	if (lampadas[0])
+		glEnable(GL_LIGHT0);
+	else
+		glDisable(GL_LIGHT0);
+	
+	/*glPushMatrix();
 		glColor4f(0.0, 1.0, 0.0, 1.0);
 		glTranslatef(0, 0.5, 0);
 		glutSolidTeapot(0.1);
-	glPopMatrix();
+	glPopMatrix();*/
 	glPushMatrix();
 		glColor4f(0.0, 1.0, 1.0, 1.0);
 		glTranslatef(-0.2, 1, 0.15);
@@ -466,19 +480,6 @@ void cenario(int view)
 		    glutSolidCone(0.06, 0.2, 20, 20);
 	    glPopMatrix();
 	}
-}
-
-void arma()
-{
-	/* Neste momento desenha um cubo vermelho
-	glPushMatrix();
-		glColor4f(1.0, 0.0, 0.0, 1.0);
-		glTranslatef(0, 0, 0);
-        glRotatef(3.14,0,1,0);
-        glRotatef(45,1,0,0);
-		glutSolidCube(1);
-	glPopMatrix();
-	*/
 }
 
 /*
@@ -519,16 +520,6 @@ void display(void)
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	cenario(MAP);
 	
-	// Arma
-	glViewport (wScreen/2, 0, wScreen/2, hScreen/2);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-    glOrtho (-xC, xC, -yC, yC, -zC, zC);
-    glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(0.1, 0.2, 0.2, 1.0, 0.5, 0.5, 0, -1, 0);
-	arma();
-	
 	// Actualiza
 	glutSwapBuffers();
 }
@@ -558,6 +549,10 @@ void keyPress(unsigned char key, int x, int y)
 		case 's':
 		case 'S':
 			atras = true;
+			break;
+		
+		case '1':
+			lampadas[0] = !lampadas[0];
 			break;
 			
 		case 'f':
