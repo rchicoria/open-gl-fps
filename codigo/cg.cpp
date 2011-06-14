@@ -104,7 +104,7 @@ void textures()
 	// Parede
 	glGenTextures(1, &texture[2]);
 	glBindTexture(GL_TEXTURE_2D, texture[2]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -118,7 +118,7 @@ void textures()
 	// Madeira
 	glGenTextures(1, &texture[3]);
 	glBindTexture(GL_TEXTURE_2D, texture[3]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -132,7 +132,7 @@ void textures()
 	// Chão
 	glGenTextures(1, &texture[4]);
 	glBindTexture(GL_TEXTURE_2D, texture[4]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -146,7 +146,7 @@ void textures()
 	// Caixa
 	glGenTextures(1, &texture[5]);
 	glBindTexture(GL_TEXTURE_2D, texture[5]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -172,13 +172,6 @@ void init(void)
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
-	
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, localPos);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
-    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
-    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
-    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
     
     textures();
 	
@@ -186,7 +179,7 @@ void init(void)
 	glFogi(GL_FOG_MODE, fogMode[fogfilter]);
 	glFogfv(GL_FOG_COLOR, fogColor);
 	glFogf(GL_FOG_DENSITY, 0.2f);
-	//glHint(GL_FOG_HINT, GL_NICEST);
+	glHint(GL_FOG_HINT, GL_NICEST);
 	glFogf(GL_FOG_START, 10.0f);
 	glFogf(GL_FOG_END, 15.0f);
 	glEnable(GL_FOG);
@@ -342,6 +335,7 @@ void edificio()
 		glTranslatef(sala12[0]+(sala12[2]-sala12[0])/2, 0, sala12[1]);
 		glRectf(sala12[2], 0, sala12[0], 1.25);
 	glPopMatrix();
+	glDisable(GL_BLEND);
 }
 
 /*
@@ -392,7 +386,7 @@ void criaCaixa(float x, float y, float z, float angulo)
 void cenario(int view)
 {
 	// Objectos para teste
-	glPushMatrix();
+	/*glPushMatrix();
 		glColor4f(0.0, 1.0, 0.0, 1.0);
 		glTranslatef(0, 0.5, 0);
 		glutSolidTeapot(0.1);
@@ -402,19 +396,26 @@ void cenario(int view)
 		glTranslatef(-0.2, 1, 0.15);
         glRotatef(0,0,1,0);
 		glutSolidSphere(0.05, 100, 100);
-	glPopMatrix();
+	glPopMatrix();*/
+	
+	glColor4f(1.0, 1.0, 1.0, 1.0);
 	
 	// Objectos
+	glPushMatrix();
 	criaCaixa(1, 0.2, 1.5, 30);
 	criaCaixa(0.55, 0.2, 1.7, 10);
 	criaCaixa(0.7, 0.6, 1.5, 55);
+	glPopMatrix();
 	
+	glPushMatrix();
 	if (view == PERSPECTIVE)
 		edificio();
 	else
 		mapa();
+	glPopMatrix();
 	
 	// Ponto do mapa
+	glPushMatrix();
 	glClear(GL_DEPTH_BUFFER_BIT);
 	if(view==MAP){
 	    glPushMatrix();
@@ -424,6 +425,7 @@ void cenario(int view)
 		    glutSolidCone(0.06, 0.2, 20, 20);
 	    glPopMatrix();
 	}
+	glPopMatrix();
 }
 
 void arma()
@@ -448,6 +450,15 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	
+	// Iluminação
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, localPos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
+    glDisable(GL_LIGHT0);
+	
 	// Janela de visualização
 	glViewport(wExtra/2, hExtra/2, wScreen, hScreen);
 	
@@ -463,6 +474,7 @@ void display(void)
 	gluLookAt(obsP[0], obsP[1]+0.04*sin(passo), obsP[2], obsL[0], obsL[1], obsL[2], 0, 1, 0);
 	
 	// Objectos do cenário
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	cenario(PERSPECTIVE);
 	
 	// Minimapa
@@ -473,6 +485,7 @@ void display(void)
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(obsP[0], obsP[1], obsP[2], obsP[0], 0, obsP[2], sin(anguloH), 0, -cos(anguloH));
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	cenario(MAP);
 	
 	// Arma
