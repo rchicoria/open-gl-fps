@@ -360,14 +360,18 @@ void edificio()
 	glBindTexture(GL_TEXTURE_2D,texture[5]);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(0,0,0,0.5);
-    criaParede(sala12[2], 0, sala12[1]-0.05, sala12[0], 1.25, sala12[1]+0.1);
+    glColor4f(1,1,1,0.5);
+    criaParede(sala12[2], 0, sala12[1], sala12[0], 1.25, sala12[1]);
 	
+	// Aluminio
 	glBindTexture(GL_TEXTURE_2D,texture[6]);
 	glDisable(GL_BLEND);
-	criaParede(sala12[2], 1.20, sala12[1]-0.07, sala12[0], 1.25, sala12[1]+0.08);
-	criaParede(sala12[2], 0, sala12[1]-0.07, sala12[2]-0.05, 1.25, sala12[1]-0.06);
-	criaParede(sala12[0], 0, sala12[0]-0.07, sala12[0]+0.05, 1.25, sala12[1]-0.06);
+	glPushMatrix();
+	    criaParede(sala12[2], 1.2, sala12[1]-0.02, sala12[0], 1.25, sala12[1]-0.02);
+	    criaParede(sala12[2], 0, sala12[1]-0.02, sala12[0], 0.05, sala12[1]-0.02);
+	    criaParede(sala12[2], 1.2, sala12[1]-0.02, sala12[2]-0.05, 1.25, sala12[1]-0.02);
+	    criaParede(sala12[2], 1.2, sala12[1]-0.02, sala12[0], 1.25, sala12[1]-0.02);
+	    
 	
 	glDisable(GL_TEXTURE_2D);
 }
@@ -491,7 +495,7 @@ void display(void)
     glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
     glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
     glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
-    glDisable(GL_LIGHT0);
+    //glDisable(GL_LIGHT0);
 	
 	// Janela de visualização
 	glViewport(wExtra/2, hExtra/2, wScreen, hScreen);
