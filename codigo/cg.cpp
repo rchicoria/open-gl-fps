@@ -105,7 +105,7 @@ void textures()
 	// Parede
 	glGenTextures(1, &texture[2]);
 	glBindTexture(GL_TEXTURE_2D, texture[2]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -119,7 +119,7 @@ void textures()
 	// Madeira
 	glGenTextures(1, &texture[3]);
 	glBindTexture(GL_TEXTURE_2D, texture[3]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -133,7 +133,7 @@ void textures()
 	// Chão
 	glGenTextures(1, &texture[4]);
 	glBindTexture(GL_TEXTURE_2D, texture[4]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -144,10 +144,10 @@ void textures()
 		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
 		imag.ImageData());
 	
-	// Vidro
+    // Vidro
 	glGenTextures(1, &texture[5]);
 	glBindTexture(GL_TEXTURE_2D, texture[5]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -161,12 +161,26 @@ void textures()
 	// Aluminio
 	glGenTextures(1, &texture[6]);
 	glBindTexture(GL_TEXTURE_2D, texture[6]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	imag.LoadBmpFile("img/aluminium.bmp");
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	imag.GetNumCols(),
+		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		imag.ImageData());
+	
+	// Caixa
+	glGenTextures(1, &texture[7]);
+	glBindTexture(GL_TEXTURE_2D, texture[7]);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	imag.LoadBmpFile("img/caixa.bmp");
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
 	imag.GetNumCols(),
 		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
@@ -187,13 +201,6 @@ void init(void)
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
-	
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, localPos);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
-    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
-    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
-    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
     
     textures();
 	
@@ -201,7 +208,7 @@ void init(void)
 	glFogi(GL_FOG_MODE, fogMode[fogfilter]);
 	glFogfv(GL_FOG_COLOR, fogColor);
 	glFogf(GL_FOG_DENSITY, 0.2f);
-	//glHint(GL_FOG_HINT, GL_NICEST);
+	glHint(GL_FOG_HINT, GL_NICEST);
 	glFogf(GL_FOG_START, 10.0f);
 	glFogf(GL_FOG_END, 15.0f);
 	glEnable(GL_FOG);
@@ -254,10 +261,22 @@ void criaParede(float x0, float y0, float z0, float x1, float y1, float z1)
 	glPopMatrix();
 }
 
+void criaParedeTexturaUnica(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3f( x0, y0, z0); 
+			glTexCoord2f(1.0f,0.0f); glVertex3f( x1, y0, z1); 
+			glTexCoord2f(1.0f,1.0f); glVertex3f( x1, y1, z1); 
+			glTexCoord2f(0.0f,1.0f); glVertex3f( x0, y1, z0);
+		glEnd();
+	glPopMatrix();
+}
+
 /*
  *	Cria um tecto com textura com base no ponto do canto inf. esq. e canto sup. dir.
  */
- void criaHorizontal(float x0, float y0, float z0, float x1, float y1, float z1)
+void criaHorizontal(float x0, float y0, float z0, float x1, float y1, float z1)
 {
 	glPushMatrix();
 		glBegin(GL_QUADS);
@@ -265,6 +284,18 @@ void criaParede(float x0, float y0, float z0, float x1, float y1, float z1)
 			glTexCoord2f(0.0f,mod(z0-z1)); glVertex3f( x0, y0, z1); 
 			glTexCoord2f(mod(x0-x1)+mod(y0-y1),mod(z0-z1)); glVertex3f( x1, y1, z1); 
 			glTexCoord2f(mod(x0-x1)+mod(y0-y1),0.0f); glVertex3f( x1, y1, z0);
+		glEnd();
+	glPopMatrix();
+}
+
+void criaHorizontalTexturaUnica(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3f( x0, y0, z0); 
+			glTexCoord2f(0.0f,1.0f); glVertex3f( x0, y0, z1); 
+			glTexCoord2f(1.0f,1.0f); glVertex3f( x1, y1, z1); 
+			glTexCoord2f(1.0f,0.0f); glVertex3f( x1, y1, z0);
 		glEnd();
 	glPopMatrix();
 }
@@ -341,6 +372,9 @@ void edificio()
 	glDisable(GL_TEXTURE_2D);
 }
 
+/*
+ *	Desenha o mapa
+ */
 void mapa()
 {
 	glEnable(GL_TEXTURE_2D);
@@ -358,12 +392,35 @@ void mapa()
 }
 
 /*
+ *	Cria uma caixa de madeira
+ */
+void criaCaixa(float x, float y, float z, float angulo)
+{
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[7]);
+	GLfloat tamCaixa = 0.2;
+	
+	glPushMatrix();
+		glTranslatef(x, y, z);
+		glRotatef(angulo,0,1,0);
+		criaParedeTexturaUnica(-tamCaixa, -tamCaixa, -tamCaixa, -tamCaixa, tamCaixa, tamCaixa);
+		criaParedeTexturaUnica(tamCaixa, -tamCaixa, -tamCaixa, -tamCaixa, tamCaixa, -tamCaixa);
+		criaParedeTexturaUnica(-tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa, tamCaixa);
+		criaParedeTexturaUnica(tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa, -tamCaixa);
+		criaHorizontalTexturaUnica(-tamCaixa, tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa);
+		criaHorizontalTexturaUnica(-tamCaixa, -tamCaixa, tamCaixa, tamCaixa, -tamCaixa, -tamCaixa);
+	glPopMatrix();
+	
+	glDisable(GL_TEXTURE_2D);
+}
+
+/*
  *	Preenche o cenário com os vários objectos
  */
 void cenario(int view)
 {
 	// Objectos para teste
-	glPushMatrix();
+	/*glPushMatrix();
 		glColor4f(0.0, 1.0, 0.0, 1.0);
 		glTranslatef(0, 0.5, 0);
 		glutSolidTeapot(0.1);
@@ -373,14 +430,26 @@ void cenario(int view)
 		glTranslatef(-0.2, 1, 0.15);
         glRotatef(0,0,1,0);
 		glutSolidSphere(0.05, 100, 100);
+	glPopMatrix();*/
+	
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+	
+	// Objectos
+	glPushMatrix();
+	criaCaixa(1, 0.2, 1.5, 30);
+	criaCaixa(0.55, 0.2, 1.7, 10);
+	criaCaixa(0.7, 0.6, 1.5, 55);
 	glPopMatrix();
 	
+	glPushMatrix();
 	if (view == PERSPECTIVE)
 		edificio();
 	else
 		mapa();
+	glPopMatrix();
 	
 	// Ponto do mapa
+	glPushMatrix();
 	glClear(GL_DEPTH_BUFFER_BIT);
 	if(view==MAP){
 	    glPushMatrix();
@@ -390,6 +459,7 @@ void cenario(int view)
 		    glutSolidCone(0.06, 0.2, 20, 20);
 	    glPopMatrix();
 	}
+	glPopMatrix();
 }
 
 void arma()
@@ -414,6 +484,15 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	
+	// Iluminação
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, localPos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
+    glDisable(GL_LIGHT0);
+	
 	// Janela de visualização
 	glViewport(wExtra/2, hExtra/2, wScreen, hScreen);
 	
@@ -429,6 +508,7 @@ void display(void)
 	gluLookAt(obsP[0], obsP[1]+0.04*sin(passo), obsP[2], obsL[0], obsL[1], obsL[2], 0, 1, 0);
 	
 	// Objectos do cenário
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	cenario(PERSPECTIVE);
 	
 	// Minimapa
@@ -439,6 +519,7 @@ void display(void)
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(obsP[0], obsP[1], obsP[2], obsP[0], 0, obsP[2], sin(anguloH), 0, -cos(anguloH));
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	cenario(MAP);
 	
 	// Arma
