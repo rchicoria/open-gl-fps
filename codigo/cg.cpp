@@ -56,11 +56,13 @@ bool text_vidro = true;
 // Luz ambiente
 GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
 GLfloat localCor[4] ={0.4, 0.4, 0.4, 1.0};
-GLfloat localPos[4] ={0, 1.0, 0, 1.0};
+GLfloat localPos1[4] ={1.9, 1.0, 1.9, 1.0};
+GLfloat localPos2[4] ={-1.9, 1.0, -4.5, 1.0};
+GLfloat localPos3[4] ={5, 1.0, -2, 1.0};
 GLfloat localAttCon =1.0;
 GLfloat localAttLin =0.05;
 GLfloat localAttQua =0.0;
-GLint lampadas[] = {true};
+GLint lampadas[] = {true, true};
 
 // Texturas
 GLuint texture[10];
@@ -250,16 +252,36 @@ float mod(float n)
 
 bool iluminaSala(int sala)
 {
+	GLint light;
+	switch (sala)
+	{
+		case 1:
+			light = GL_LIGHT0;
+			break;
+		case 2:
+			light = GL_LIGHT1;
+			break;
+		case 3:
+			light = GL_LIGHT2;
+			break;
+	}
 	if (lampadas[sala-1])
 	{
-		glEnable(GL_LIGHT0);
+		glEnable(light);
 		return true;
 	}
 	else
 	{
-		glDisable(GL_LIGHT0);
+		glDisable(light);
 		return false;
 	}
+}
+
+void apagaLuzes()
+{
+	glDisable(GL_LIGHT0);
+	glDisable(GL_LIGHT1);
+	glDisable(GL_LIGHT2);
 }
 
 /*
@@ -324,7 +346,7 @@ void edificio()
 	glEnable(GL_TEXTURE_2D);
 	
 	// Chão e tecto
-	glDisable(GL_LIGHT0);
+	apagaLuzes();
 	glBindTexture(GL_TEXTURE_2D,texture[4]);
 	criaHorizontal(sala3[2], 0, sala1[1], sala1[0], 0, sala3[3]);
 	criaHorizontal(sala1[0], alturaSala12, sala1[1], sala1[2], alturaSala12, sala1[3]);
@@ -346,9 +368,10 @@ void edificio()
 	criaParede(sala12[0], 0, sala12[1], sala12[0], 1.25, sala12[3]);
 	criaParede(sala12[2], 0, sala12[3], sala12[2], 1.25, sala12[1]);
 	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
+	apagaLuzes();
 	
-	glDisable(GL_LIGHT0);
 	// Sala 2
+	iluminaSala(2);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
 	criaParede(sala12[0], 0, sala2[1], sala2[0], 1.25, sala2[1]);
 	criaParede(sala2[2], 0, sala2[1], sala12[2], 1.25, sala2[1]);
@@ -364,8 +387,10 @@ void edificio()
 	criaParede(sala23[2], 0, sala23[1], sala23[0], 1.25, sala23[1]);
 	criaParede(sala23[0], 0, sala23[3], sala23[2], 1.25, sala23[3]);
 	criaHorizontal(sala23[0], 1.25, sala23[1], sala23[2], 1.25, sala23[3]);
+	apagaLuzes();
 	
 	// Sala 3
+	iluminaSala(3);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
 	criaParede(sala3[0], 1.25, sala3[1], sala3[0], alturaSala12, sala3[3]);
 	criaParede(sala3[0], 0, sala3[1], sala3[0], 1.25, sala23[1]);
@@ -374,6 +399,7 @@ void edificio()
 	criaParede(sala3[2], 0, sala3[1], sala3[0], alturaEdificio+1.5, sala3[1]);
 	criaParede(sala3[0], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[3]);
 	criaParede(sala3[2], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[1]);
+	apagaLuzes();
 	
 	// Vidro
 	glBindTexture(GL_TEXTURE_2D,texture[5]);
@@ -449,13 +475,24 @@ void criaCaixa(float x, float y, float z, float angulo)
 void cenario(int view)
 {
     // Iluminação
-    glLightfv(GL_LIGHT0, GL_POSITION, localPos);
+    glLightfv(GL_LIGHT0, GL_POSITION, localPos1);
     glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
     glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
     glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
     glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
+    glLightfv(GL_LIGHT1, GL_POSITION, localPos2);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT1, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT1, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT1, GL_QUADRATIC_ATTENUATION, localAttQua);
+    glLightfv(GL_LIGHT2, GL_POSITION, localPos3);
+    glLightfv(GL_LIGHT2, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT2, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT2, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT2, GL_QUADRATIC_ATTENUATION, localAttQua);
+    apagaLuzes();
 	
-	// Objectos para teste
+	// Sala 1
 	if (view == PERSPECTIVE)
 		iluminaSala(1);
 	else
@@ -472,16 +509,24 @@ void cenario(int view)
         glRotatef(0,0,1,0);
 		glutSolidSphere(0.05, 100, 100);
 	glPopMatrix();
-	
 	glColor4f(1.0, 1.0, 1.0, 1.0);
-	
-	// Objectos
 	criaCaixa(1, 0.2, 1.5, 30);
 	criaCaixa(0.55, 0.2, 1.7, 10);
 	criaCaixa(0.7, 0.6, 1.5, 55);
 	
-	glDisable(GL_LIGHT0);
+	apagaLuzes();
 	
+	// Sala 2
+	if (view == PERSPECTIVE)
+		iluminaSala(2);
+	else
+		glEnable(GL_LIGHT1);
+	
+	criaCaixa(1, 0.2, -3.5, 35);
+	
+	apagaLuzes();
+	
+	// Edifício
 	if (view == PERSPECTIVE)
 		edificio();
 	else
@@ -569,7 +614,9 @@ void keyPress(unsigned char key, int x, int y)
 			break;
 		
 		case '1':
-			lampadas[0] = !lampadas[0];
+		case '2':
+		case '3':
+			lampadas[key-'1'] = !lampadas[key-'1'];
 			break;
 			
 		case 'f':
