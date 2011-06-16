@@ -1,4 +1,4 @@
-/*
+ /*
  *	Autores:
  *
  *	Ricardo Pinto Lopes 2008114843
@@ -189,6 +189,20 @@ void textures()
 	imag.GetNumCols(),
 		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
 		imag.ImageData());
+		
+	// Parede de vidro
+	glGenTextures(1, &texture[8]);
+	glBindTexture(GL_TEXTURE_2D, texture[8]);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	imag.LoadBmpFile("img/glassblock.bmp");
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	imag.GetNumCols(),
+		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		imag.ImageData());
 }
 
 /*
@@ -299,6 +313,18 @@ void criaParede(float x0, float y0, float z0, float x1, float y1, float z1)
 	glPopMatrix();
 }
 
+void criaParedeN(float x0, float y0, float z0, float x1, float y1, float z1, int n)
+{
+	glPushMatrix();
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0f,0.0f); glVertex3f( x0, y0, z0); 
+			glTexCoord2f(n*1.0f,0.0f); glVertex3f( x1, y0, z1); 
+			glTexCoord2f(n*1.0f,n*1.0f); glVertex3f( x1, y1, z1); 
+			glTexCoord2f(0.0f,n*1.0f); glVertex3f( x0, y1, z0);
+		glEnd();
+	glPopMatrix();
+}
+
 void criaParedeTexturaUnica(float x0, float y0, float z0, float x1, float y1, float z1)
 {
 	glPushMatrix();
@@ -395,10 +421,42 @@ void edificio()
 	criaParede(sala3[0], 1.25, sala3[1], sala3[0], alturaSala12, sala3[3]);
 	criaParede(sala3[0], 0, sala3[1], sala3[0], 1.25, sala23[1]);
 	criaParede(sala3[0], 0, sala23[3], sala3[0], 1.25, sala3[3]);
-	criaParede(sala1[0]+2, alturaSala12, sala1[1], sala2[1]+2, alturaEdificio+1.5, sala2[3]);
+	criaParede(sala1[0]+2, alturaSala12, sala1[1], sala2[0]+2, alturaEdificio+1.5, sala2[3]);
 	criaParede(sala3[2], 0, sala3[1], sala3[0], alturaEdificio+1.5, sala3[1]);
 	criaParede(sala3[0], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[3]);
 	criaParede(sala3[2], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[1]);
+	
+	// -------interior sala 3-----------
+	glBindTexture(GL_TEXTURE_2D, texture[2]);
+	criaParede(sala3[2]-2, 0, sala3[3]+2, sala3[2]-2, alturaSala12, sala3[3]);
+	criaParede(sala3[2]-2.1, 0, sala3[3], sala3[2]-2.1, alturaSala12, sala3[3]+2);
+	criaParede(sala3[2]-2.1, 0, sala3[3]+2, sala3[2]-2, alturaSala12, sala3[3]+2);
+	criaParede(sala3[2]-2, alturaSala12-0.1, sala3[3]+2, sala3[2]-1.1, alturaSala12, sala3[3]+2);
+	criaHorizontal(sala3[2]-2, alturaSala12-0.1, sala3[3]+2, sala3[2]-1.1, alturaSala12-0.1, sala3[3]+1.9);
+	criaParede(sala3[2]-1.1, 0, sala3[3]+2, sala3[2]-1, alturaSala12, sala3[3]+2);
+	criaParede(sala3[2]-1.1, 0, sala3[3]+1.9, sala3[2]-1.1, alturaSala12, sala3[3]+2);
+	criaParede(sala3[2]-1, 0, sala3[3]+2, sala3[2]-1, alturaSala12, sala3[3]+1.9);
+	
+	glDisable(GL_TEXTURE_2D);
+	glColor4f(0,0,0,1);
+	GLfloat i=0;
+	for(i=0; i<alturaSala12-0.1; i+=(alturaSala12-0.1)/10){
+	    criaParede(sala3[2]-2, i, sala3[3]+2.001, sala3[2]-1.1, i+0.001, sala3[3]+2.001);
+	    criaParede(sala3[2]-2, i, sala3[3]+2.001-0.1, sala3[2]-1.1, i+0.001, sala3[3]+2.001-0.1);
+	}
+	for(i=sala3[2]-2; i<sala3[2]-1.1; i+=(0.9)/10)
+	    criaParede(i, 0, sala3[3]+2.001, i+0.001, alturaSala12-0.1, sala3[3]+2.001);
+	
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[8]);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1,1,1,0.8);
+    criaParedeN(sala3[2]-2, 0, sala3[3]+2, sala3[2]-1.1, alturaSala12-0.1, sala3[3]+2,5);
+    criaParedeN(sala3[2]-2, 0, sala3[3]+1.9, sala3[2]-1.1, alturaSala12-0.1, sala3[3]+1.9,5);
+    glDisable(GL_BLEND);
+	glBindTexture(GL_TEXTURE_2D,texture[2]);
+	
 	apagaLuzes();
 	
 	// Vidro
@@ -618,6 +676,16 @@ void keyPress(unsigned char key, int x, int y)
 		case '3':
 			lampadas[key-'1'] = !lampadas[key-'1'];
 			break;
+		
+		case 'U':
+		case 'u':
+		    obsP[1]++;
+		    break;
+		
+		case 'j':
+		case 'J':
+		    obsP[1]--;
+		    break;
 			
 		case 'f':
 		case 'F':
