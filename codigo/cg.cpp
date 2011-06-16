@@ -15,6 +15,7 @@
 
 #define PERSPECTIVE 0
 #define MAP 1
+#define WEAPON 2
 
 /*
  *	Variáveis e constantes globais
@@ -51,12 +52,13 @@ bool atras = false;
 bool esquerda = false;
 GLfloat vel = 0.03;
 bool fullscreen = true;
+GLfloat recoil = 0;
 
 // Luz ambiente
 GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
 GLfloat localCor[4] ={0.4, 0.4, 0.4, 1.0};
 GLfloat localPos1[4] ={1.9, 1.0, 1.9, 1.0};
-GLfloat localPos2[4] ={-1.9, 1.0, -4.5, 1.0};
+GLfloat localPos2[4] ={-1, 1.0, -3.5, 1.0};
 GLfloat localPos3[4] ={5, 1.0, -2, 1.0};
 GLfloat localAttCon =1.0;
 GLfloat localAttLin =0.05;
@@ -188,6 +190,20 @@ void textures()
 	imag.GetNumCols(),
 		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
 		imag.ImageData());
+	
+	// Arma
+	glGenTextures(1, &texture[8]);
+	glBindTexture(GL_TEXTURE_2D, texture[8]);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	imag.LoadBmpFile("img/arma.bmp");
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	imag.GetNumCols(),
+		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		imag.ImageData());
 }
 
 /*
@@ -242,6 +258,9 @@ void resizeWindow(GLsizei w, GLsizei h)
 	glutPostRedisplay();
 }
 
+/*
+ *	Calcula o valor absoluto de um número
+ */
 float mod(float n)
 {
 	if (n == 0)
@@ -249,6 +268,9 @@ float mod(float n)
 	return sqrt(n*n);
 }
 
+/*
+ *	Liga ou desliga a luz da sala pretendida
+ */
 bool iluminaSala(int sala)
 {
 	GLint light;
@@ -276,6 +298,9 @@ bool iluminaSala(int sala)
 	}
 }
 
+/*
+ *	Apaga todas as luzes de todas as salas
+ */
 void apagaLuzes()
 {
 	glDisable(GL_LIGHT0);
@@ -335,6 +360,48 @@ void criaHorizontalTexturaUnica(float x0, float y0, float z0, float x1, float y1
 			glTexCoord2f(1.0f,0.0f); glVertex3f( x1, y1, z0);
 		glEnd();
 	glPopMatrix();
+}
+
+/*
+ *	Desenha a arma do jogador
+ */
+void criaArma()
+{
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[8]);
+	iluminaSala(1);
+	iluminaSala(2);
+	iluminaSala(3);
+	criaParede(0, 0, 0, 0.5, 0.14, 0);
+	criaHorizontal(0, 0.14, -0.08, 0.5, 0.14, 0);
+	criaParede(0, 0, -0.1, 0.5, 0.14, -0.1);
+	criaHorizontal(0, 0.14, -0.18, 0.5, 0.14, -0.1);
+	apagaLuzes();
+	glDisable(GL_TEXTURE_2D);
+}
+
+/*
+ *	Cria uma caixa de madeira
+ */
+void criaCaixa(float x, float y, float z, float angulo)
+{
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[7]);
+	GLfloat tamCaixa = 0.2;
+	
+	glPushMatrix();
+		glTranslatef(x, y, z);
+		glRotatef(angulo,0,1,0);
+		criaParedeTexturaUnica(-tamCaixa, -tamCaixa, -tamCaixa, -tamCaixa, tamCaixa, tamCaixa);
+		criaParedeTexturaUnica(tamCaixa, -tamCaixa, -tamCaixa, -tamCaixa, tamCaixa, -tamCaixa);
+		criaParedeTexturaUnica(-tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa, tamCaixa);
+		criaParedeTexturaUnica(tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa, -tamCaixa);
+		criaHorizontalTexturaUnica(-tamCaixa, tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa);
+		criaHorizontalTexturaUnica(-tamCaixa, -tamCaixa, tamCaixa, tamCaixa, -tamCaixa, -tamCaixa);
+	glPopMatrix();
+	
+	glDisable(GL_TEXTURE_2D);
 }
 
 /*
@@ -446,26 +513,28 @@ void mapa()
 }
 
 /*
- *	Cria uma caixa de madeira
+ *	Trata da definição das luzes
  */
-void criaCaixa(float x, float y, float z, float angulo)
+void iluminacao()
 {
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,texture[7]);
-	GLfloat tamCaixa = 0.2;
-	
-	glPushMatrix();
-		glTranslatef(x, y, z);
-		glRotatef(angulo,0,1,0);
-		criaParedeTexturaUnica(-tamCaixa, -tamCaixa, -tamCaixa, -tamCaixa, tamCaixa, tamCaixa);
-		criaParedeTexturaUnica(tamCaixa, -tamCaixa, -tamCaixa, -tamCaixa, tamCaixa, -tamCaixa);
-		criaParedeTexturaUnica(-tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa, tamCaixa);
-		criaParedeTexturaUnica(tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa, -tamCaixa);
-		criaHorizontalTexturaUnica(-tamCaixa, tamCaixa, -tamCaixa, tamCaixa, tamCaixa, tamCaixa);
-		criaHorizontalTexturaUnica(-tamCaixa, -tamCaixa, tamCaixa, tamCaixa, -tamCaixa, -tamCaixa);
-	glPopMatrix();
-	
-	glDisable(GL_TEXTURE_2D);
+    glLightfv(GL_LIGHT0, GL_POSITION, localPos1);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
+    
+    glLightfv(GL_LIGHT1, GL_POSITION, localPos1);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT1, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT1, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT1, GL_QUADRATIC_ATTENUATION, localAttQua);
+    
+    glLightfv(GL_LIGHT2, GL_POSITION, localPos3);
+    glLightfv(GL_LIGHT2, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT2, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT2, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT2, GL_QUADRATIC_ATTENUATION, localAttQua);
+    apagaLuzes();
 }
 
 /*
@@ -473,23 +542,7 @@ void criaCaixa(float x, float y, float z, float angulo)
  */
 void cenario(int view)
 {
-    // Iluminação
-    glLightfv(GL_LIGHT0, GL_POSITION, localPos1);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
-    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
-    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
-    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
-    glLightfv(GL_LIGHT1, GL_POSITION, localPos2);
-    glLightfv(GL_LIGHT1, GL_AMBIENT, localCor);
-    glLightf (GL_LIGHT1, GL_CONSTANT_ATTENUATION, localAttCon);
-    glLightf (GL_LIGHT1, GL_LINEAR_ATTENUATION, localAttLin);
-    glLightf (GL_LIGHT1, GL_QUADRATIC_ATTENUATION, localAttQua);
-    glLightfv(GL_LIGHT2, GL_POSITION, localPos3);
-    glLightfv(GL_LIGHT2, GL_AMBIENT, localCor);
-    glLightf (GL_LIGHT2, GL_CONSTANT_ATTENUATION, localAttCon);
-    glLightf (GL_LIGHT2, GL_LINEAR_ATTENUATION, localAttLin);
-    glLightf (GL_LIGHT2, GL_QUADRATIC_ATTENUATION, localAttQua);
-    apagaLuzes();
+    iluminacao();
 	
 	// Sala 1
 	if (view == PERSPECTIVE)
@@ -512,6 +565,7 @@ void cenario(int view)
 	criaCaixa(1, 0.2, 1.5, 30);
 	criaCaixa(0.55, 0.2, 1.7, 10);
 	criaCaixa(0.7, 0.6, 1.5, 55);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
 	
 	apagaLuzes();
 	
@@ -580,6 +634,18 @@ void display(void)
 	gluLookAt(obsP[0], obsP[1], obsP[2], obsP[0], 0, obsP[2], sin(anguloH), 0, -cos(anguloH));
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	cenario(MAP);
+	
+	// Arma
+	glViewport (wExtra/2+wScreen/2, hExtra/2, wScreen/2, hScreen/2);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(70, wScreen/hScreen, 0.1, zC*5);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(0.45, 0.3+0.01*sin(passo), 0.12, 0, 0.01*sin(passo)-recoil, 0, 0, 1, 0);
+	recoil = 0;
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	criaArma();
 	
 	// Actualiza
 	glutSwapBuffers();
@@ -669,18 +735,27 @@ void keyUp(unsigned char key, int x, int y)
 	}
 }
 
+void mouseClick(int button, int state, int x, int y)
+{
+	if ((button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN))
+	{
+		recoil = 0.05;
+	}
+}
+
 /*
  *	Controlo da câmara com o rato
  */
 void mouseMovement(int x, int y) {
+	float limite = 3.14/2;
 	int diffx = x - wScreen/2;
 	int diffy = y - hScreen/2;
 	anguloV -= (float) diffy * velCamara;
 	anguloH += (float) diffx * velCamara;
-	if (anguloV > 3.0)
-		anguloV = 3.0;
-	if (anguloV < -3.0)
-		anguloV = -3.0;
+	if (anguloV > limite)
+		anguloV = limite;
+	if (anguloV < -limite)
+		anguloV = -limite;
 }
 
 /*
@@ -742,6 +817,7 @@ int main(int argc, char** argv)
   
 	init();
 	
+	glutMouseFunc(mouseClick);
 	glutKeyboardFunc(keyPress);
 	glutKeyboardUpFunc(keyUp);
 	glutPassiveMotionFunc(mouseMovement);
