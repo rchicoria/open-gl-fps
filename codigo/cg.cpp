@@ -53,6 +53,7 @@ bool esquerda = false;
 GLfloat vel = 0.03;
 bool fullscreen = true;
 GLfloat recoil = 0;
+bool text_vidro = true;
 
 // Luz ambiente
 GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
@@ -155,8 +156,8 @@ void textures()
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	imag.LoadBmpFile("img/glass.bmp");
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
 	imag.GetNumCols(),
@@ -472,7 +473,7 @@ void edificio()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4f(1,1,1,0.5);
-    criaParede(sala12[2], 0, sala12[1], sala12[0], 1.25, sala12[1]);
+    criaParedeTexturaUnica(sala12[2], 0, sala12[1], sala12[0], 1.25, sala12[1]);
 	
 	// Aluminio
 	glBindTexture(GL_TEXTURE_2D,texture[6]);
@@ -699,6 +700,43 @@ void keyPress(unsigned char key, int x, int y)
 				fullscreen = true;
 			}
 			break;
+		
+		case 'V':
+		case 'v':
+		    // Vidro
+	        if(text_vidro){
+	            glGenTextures(1, &texture[5]);
+	            glBindTexture(GL_TEXTURE_2D, texture[5]);
+	            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	            imag.LoadBmpFile("img/broken_glass.bmp");
+	            glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	            imag.GetNumCols(),
+		            imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		            imag.ImageData());
+		        text_vidro=false;
+		    }
+		    else {
+	            // Vidro
+	            glGenTextures(1, &texture[5]);
+	            glBindTexture(GL_TEXTURE_2D, texture[5]);
+	            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	            imag.LoadBmpFile("img/glass.bmp");
+	            glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	            imag.GetNumCols(),
+	                imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+	                imag.ImageData());
+	            text_vidro=true;
+	        }
+		            
+		    break;
 			
 		case 27: // Esq
 			exit(0);
