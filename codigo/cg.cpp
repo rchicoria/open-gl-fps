@@ -75,165 +75,46 @@ GLuint fogMode[] = { GL_EXP, GL_EXP2, GL_LINEAR };
 GLuint fogfilter = 2;
 GLfloat fogColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
+// Materiais
+GLfloat goldAmbient[] = {0.24725, 0.1995, 0.0745};
+GLfloat goldDiffuse[] = {0.75164, 0.60648, 0.22648};
+GLfloat goldSpecular[] = {0.628281, 0.555802, 0.366065};
+GLfloat goldShininess = 128 * 0.4;
+
+/*
+ *	Cria uma nova textura e guarda-a no array de texturas
+ */
+void criaTextura(int index, const char* url)
+{
+	glGenTextures(1, &texture[index]);
+	glBindTexture(GL_TEXTURE_2D, texture[index]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	imag.LoadBmpFile(url);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+	imag.GetNumCols(),
+		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+		imag.ImageData());
+}
+
 /*
  *	Cria as várias texturas
  */
 void textures()
 {
-	// Preto
-	glGenTextures(1, &texture[0]);
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	imag.LoadBmpFile("img/preto.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
-	
-	// Branco
-	glGenTextures(1, &texture[1]);
-	glBindTexture(GL_TEXTURE_2D, texture[1]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	imag.LoadBmpFile("img/branco.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
-	
-	// Parede
-	glGenTextures(1, &texture[2]);
-	glBindTexture(GL_TEXTURE_2D, texture[2]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	imag.LoadBmpFile("img/parede.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
-	
-	// Madeira
-	glGenTextures(1, &texture[3]);
-	glBindTexture(GL_TEXTURE_2D, texture[3]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	imag.LoadBmpFile("img/madeira.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
-	
-	// Chão
-	glGenTextures(1, &texture[4]);
-	glBindTexture(GL_TEXTURE_2D, texture[4]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	imag.LoadBmpFile("img/chao.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
-	
-    // Vidro
-	glGenTextures(1, &texture[5]);
-	glBindTexture(GL_TEXTURE_2D, texture[5]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	imag.LoadBmpFile("img/glass.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
-	
-	// Aluminio
-	glGenTextures(1, &texture[6]);
-	glBindTexture(GL_TEXTURE_2D, texture[6]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	imag.LoadBmpFile("img/aluminium.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
-	
-	// Caixa
-	glGenTextures(1, &texture[7]);
-	glBindTexture(GL_TEXTURE_2D, texture[7]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	imag.LoadBmpFile("img/caixa.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
-	// Arma
-
-	glGenTextures(1, &texture[8]);
-	glBindTexture(GL_TEXTURE_2D, texture[8]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	imag.LoadBmpFile("img/arma.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
-		
-	// parede de vidro
-
-	glGenTextures(1, &texture[9]);
-	glBindTexture(GL_TEXTURE_2D, texture[9]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	imag.LoadBmpFile("img/glassblock.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
-	
-	// Vidro
-	glGenTextures(1, &texture[10]);
-	glBindTexture(GL_TEXTURE_2D, texture[10]);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	imag.LoadBmpFile("img/broken_glass.bmp");
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
-	imag.GetNumCols(),
-		imag.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-		imag.ImageData());
+	criaTextura(0, "img/preto.bmp");
+	criaTextura(1, "img/branco.bmp");
+	criaTextura(2, "img/parede.bmp");
+	criaTextura(3, "img/madeira.bmp");
+	criaTextura(4, "img/chao.bmp");
+	criaTextura(5, "img/glass.bmp");
+	criaTextura(6, "img/aluminium.bmp");
+	criaTextura(7, "img/caixa.bmp");
+	criaTextura(8, "img/arma.bmp");
+	criaTextura(9, "img/glassblock.bmp");
+	criaTextura(10, "img/broken_glass.bmp");
 }
 
 /*
@@ -556,7 +437,7 @@ void edificio()
 	apagaLuzes();
 	
 	// Vidro
-	if(vidro)
+	if(text_vidro)
 	    glBindTexture(GL_TEXTURE_2D,texture[5]);
 	else
 	    glBindTexture(GL_TEXTURE_2D,texture[10]);
@@ -647,10 +528,16 @@ void cenario(int view)
 		glutSolidTeapot(0.1);
 	glPopMatrix();
 	glPushMatrix();
+		glDisable(GL_COLOR_MATERIAL);
+		glMaterialfv(GL_FRONT,GL_AMBIENT, goldAmbient);
+        glMaterialf(GL_FRONT,GL_SHININESS, goldShininess);
+        glMaterialfv(GL_FRONT,GL_SPECULAR, goldSpecular);
+        glMaterialfv(GL_FRONT,GL_DIFFUSE, goldDiffuse);
 		glColor4f(0.0, 1.0, 1.0, 1.0);
 		glTranslatef(-0.2, 1, 0.15);
         glRotatef(0,0,1,0);
 		glutSolidSphere(0.05, 100, 100);
+		glEnable(GL_COLOR_MATERIAL);
 	glPopMatrix();
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 	criaCaixa(1, 0.2, 1.5, 30);
@@ -674,6 +561,10 @@ void cenario(int view)
 	criaCaixa(10, 0.2, -3.8, 30);
 	criaCaixa(9.55, 0.2, -4, 10);
 	criaCaixa(9.7, 0.6, -3.8, 55);
+	
+	criaCaixa(6, 0.2, 0.5, 30);
+	criaCaixa(5.55, 0.2, 0.8, 10);
+	criaCaixa(5.7, 0.6, 0.5, 55);
 	
 	// Edifício
 	if (view == PERSPECTIVE)
@@ -809,15 +700,11 @@ void keyPress(unsigned char key, int x, int y)
 		case 'V':
 		case 'v':
 		    // Vidro
-	        if(text_vidro){
+	        if(text_vidro)
 		        text_vidro=false;
-		    }
-		    else {
-	            text_vidro=true;
-	        }
-		            
+		    else 
+	            text_vidro=true;    
 		    break;
-			
 		case 27: // Esq
 			exit(0);
 			break;
@@ -853,11 +740,24 @@ void keyUp(unsigned char key, int x, int y)
 	}
 }
 
+/*
+ *	Descobre onde é que o tiro acertou e faz qualquer coisa aí
+ */
+void tiro(GLfloat x, GLfloat y, GLfloat z, GLfloat angH, GLfloat angV)
+{
+	printf("(%f,%f,%f) H=%f V=%f\n", x,y,z, angH, angV);
+	
+}
+
+/*
+ *	Controlo dos cliques de rato, para disparar
+ */
 void mouseClick(int button, int state, int x, int y)
 {
 	if ((button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN))
 	{
 		recoil = 0.12;
+		tiro(obsP[0], obsP[1], obsP[2], anguloH, anguloV);
 	}
 }
 
