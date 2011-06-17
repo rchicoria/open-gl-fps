@@ -182,7 +182,7 @@ float mod(float n)
 /*
  *	Liga ou desliga a luz da sala pretendida
  */
-bool iluminaSala(int sala)
+bool iluminaSala(int sala, int view=PERSPECTIVE)
 {
 	GLint light;
 	switch (sala)
@@ -197,7 +197,7 @@ bool iluminaSala(int sala)
 			light = GL_LIGHT2;
 			break;
 	}
-	if (lampadas[sala-1])
+	if (lampadas[sala-1] || view == MAP)
 	{
 		glEnable(light);
 		return true;
@@ -705,6 +705,7 @@ void keyPress(unsigned char key, int x, int y)
 		    else 
 	            text_vidro=true;    
 		    break;
+		
 		case 27: // Esq
 			exit(0);
 			break;
