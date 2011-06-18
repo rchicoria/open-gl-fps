@@ -535,7 +535,7 @@ void mapa()
 	criaHorizontal(sala3[2]-2, 0.1, sala3[3]+2.1, sala3[2]-2.1, 0.1, sala3[3]); // Parede vidro 1
 	criaHorizontal(sala3[2]-1.1, 0.1, sala3[3]+2.1, sala3[2]-2.1, 0.1, sala3[3]+1.8); // Parede vidro 2
 	criaHorizontal(sala3[2]-2, 0.1, sala3[1]-2, sala3[0]+2, 0.1, sala3[1]-2.1); // Parede em T 1
-	criaHorizontal(sala3[0]+5.1, 0.1, sala3[1]-2.1, sala3[0]+5, 0.1, sala3[1]-4); // Parede em T 2
+	criaHorizontal(sala3[0]+5, 0.1, sala3[1]-2.1, sala3[0]+4.9, 0.1, sala3[1]-4); // Parede em T 2
 	
 	glDisable(GL_TEXTURE_2D);
 }
@@ -946,6 +946,15 @@ GLfloat colisoesX(GLfloat x, GLfloat z)
 			return obsP[0];
 	if (x > sala3[2]-1 && x < sala3[2]-1+0.15 && z < sala3[3]+2.1+0.15 && z > sala3[3]+1.8-0.15 && obsP[0] > x)
 		return obsP[0];
+	// Parede em T
+	if (x > sala3[0]+4.9-0.15 && x < sala3[0]+5 && z < sala3[1]-2.1 && z > sala3[1]-4-0.15 && obsP[0] < x)
+		return obsP[0];
+	if (x > sala3[0]+4.9 && x < sala3[0]+5+0.15 && z < sala3[1]-2.1 && z > sala3[1]-4-0.15 && obsP[0] > x)
+		return obsP[0];
+	if (x > sala3[0]+2-0.15 && x < sala3[0]+2 && z < sala3[1]-2+0.15 && z > sala3[1]-2.1-0.15 && obsP[0] < x)
+		return obsP[0];
+	if (x > sala3[2]-2 && x < sala3[2]-2+0.15 && z < sala3[1]-2+0.15 && z > sala3[1]-2.1-0.15 && obsP[0] > x)
+		return obsP[0];
 		
 	return x;
 }
@@ -975,6 +984,13 @@ GLfloat colisoesZ(GLfloat x, GLfloat z)
 		if (sala3[2]-x <= -(sala3[3]-z))
 			return obsP[2];
 	if (x > sala3[2]-2.1 && x < sala3[2]-1.1+0.15 && z > sala3[3]+1.8-0.15 && z < sala3[3]+2.1 && obsP[2] < z)
+		return obsP[2];
+	// Parede em T
+	if (x > sala3[0]+4.9-0.15 && x < sala3[0]+5+0.15 && z < sala3[1]-4 && z > sala3[1]-4-0.15 && obsP[2] < z)
+		return obsP[2];
+	if (x > sala3[0]+2-0.15 && x < sala3[2]-2+0.15 && z < sala3[1]-2+0.15 && z > sala3[1]-2.1 && obsP[2] > z)
+		return obsP[2];
+	if (x > sala3[0]+2-0.15 && x < sala3[2]-2+0.15 && z < sala3[1]-2 && z > sala3[1]-2.1-0.15 && obsP[2] < z)
 		return obsP[2];
 		
 	return z;
