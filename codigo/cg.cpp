@@ -78,10 +78,22 @@ GLuint fogfilter = 2;
 GLfloat fogColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
 // Furos dos tiros
+int furosMax = 10;
 GLfloat furos[10][5];
 GLint furosPos = 0;
 GLint furosTam = 0;
-GLint furosMax = 10;
+
+// Alvos
+int numAlvos = 4;
+GLfloat alvos[4][6] = { // {x, y, z, angulo, estado (0 ok 90 ko), sala}
+	{-0.9, 0, -4.5, 90, 0, 2},
+	{2, alturaSala12, 0.5, 90, 0, 3},
+	{2, alturaSala12, -1.5, 90, 0, 3},
+	{sala3[2]-0.5, 0, sala3[3]+1.7, 0, 0, 3},
+};
+GLint alvosOK = 4;
+GLfloat lAlvo = 0.434;
+GLfloat aAlvo = 0.981;
 
 // Materiais
 GLfloat goldAmbient[] = {0.24725, 0.1995, 0.0745};
@@ -127,6 +139,7 @@ void textures()
 	criaTextura(10, "img/broken_glass.bmp");
 	criaTextura(11, "img/tecto.bmp");
 	criaTextura(12, "img/tecto2.bmp");
+	criaTextura(13, "img/alvo.bmp");
 }
 
 /*
@@ -335,6 +348,28 @@ void criaCaixa(float x, float y, float z, float angulo)
 		criaHorizontalTexturaUnica(-tamCaixa, -tamCaixa, tamCaixa, tamCaixa, -tamCaixa, -tamCaixa);
 	glPopMatrix();
 	
+	glDisable(GL_TEXTURE_2D);
+}
+
+/*
+ *	Cria o alvo a ser abatido
+ */
+void criaAlvo(GLfloat* alvo)
+{
+    glEnable(GL_TEXTURE_2D);
+    glColor4f(1,1,1,1);
+    iluminaSala(alvo[5]);
+	glPushMatrix();
+		glTranslatef(alvo[0], alvo[1]+0.02, alvo[2]);
+	    glRotatef(alvo[3], 0, 1, 0);
+	    glRotatef(-alvo[4], 1, 0, 0);
+		glBindTexture(GL_TEXTURE_2D,texture[13]);
+	    criaParedeTexturaUnica(-lAlvo/2, 0, 0, lAlvo/2, aAlvo, 0);
+		glBindTexture(GL_TEXTURE_2D,texture[3]);
+	    criaParedeTexturaUnica(lAlvo/2, 0, -0.02, -lAlvo/2, aAlvo, -0.02);
+	    criaParedeTexturaUnica(lAlvo/2, 0, 0, lAlvo/2, aAlvo, -0.02);
+	    criaParedeTexturaUnica(-lAlvo/2, 0, -0.02, -lAlvo/2, aAlvo, 0);
+	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
 }
 
@@ -574,7 +609,11 @@ void iluminacao()
  *	Preenche o cenário com os vários objectos
  */
 void cenario(int view)
-{   
+{
+	// Alvos
+	for (int i=0; i<numAlvos; i++)
+		criaAlvo(alvos[i]);
+	
 	// Sala 1
 	iluminaSala(1, view);
 	glPushMatrix();
@@ -606,7 +645,8 @@ void cenario(int view)
 	iluminaSala(2, view);
 	iluminaSala(3, view);
 	
-	criaCaixa(1, 0.2, -3.5, 35);
+	criaCaixa(-1.2, 0.2, -3.95, 5);
+	criaCaixa(-1.7, 0.2, -3.95, -10);
 	
 	apagaLuzes();
 	
@@ -801,6 +841,37 @@ void keyUp(unsigned char key, int x, int y)
 }
 
 /*
+ *	Timer para a animação do alvo a ser derrubado
+ */
+void derrubaAlvo(int value)
+{
+	alvos[value][4] += 5;
+	if (alvos[value][4] < 90)
+		glutTimerFunc(msec, derrubaAlvo, value);
+}
+
+/*
+ *	Verifica se o tiro acertou em algum alvo e fá-lo rodar em caso afirmativo
+ */
+bool acertaAlvo(GLfloat* bala)
+{
+	for (int i=0; i<numAlvos; i++)
+	{
+		if (alvos[i][4] == 0) // Se está OK
+		{
+			if (alvos[i][3] == 0 && obsP[2] > alvos[i][2] && alvos[i][0]-lAlvo/2 <= bala[0] && alvos[i][0]+lAlvo/2 >= bala[0] && alvos[i][1] <= bala[1] && alvos[i][1]+aAlvo >= bala[1] && alvos[i][2] >= bala[2] && alvos[i][2]-0.1 <= bala[2]); // Se está virado para Sul
+			else if (alvos[i][3] == 90 && obsP[0] > alvos[i][0] && alvos[i][2]-lAlvo/2 <= bala[2] && alvos[i][2]+lAlvo/2 >= bala[2] && alvos[i][1] <= bala[1] && alvos[i][1]+aAlvo >= bala[1] && alvos[i][0] >= bala[0] && alvos[i][0]-0.1 <= bala[0]); // Se está virado para Este
+			else
+				continue;
+			glutTimerFunc(msec, derrubaAlvo, i);
+			alvosOK--;
+			return true;
+		}
+	}
+	return false;
+}
+
+/*
  *	Descobre onde é que o tiro acertou e faz qualquer coisa aí
  */
 void tiro(GLfloat x, GLfloat y, GLfloat z)
@@ -813,8 +884,12 @@ void tiro(GLfloat x, GLfloat y, GLfloat z)
 		GLfloat ang = 0;
 		GLfloat ang2 = 0;
 		
+		// Alvos
+		if (acertaAlvo(bala))
+			break;
+		
 		// Paredes exteriores
-		if (bala[0] >= sala3[2]) // Parede Este
+		else if (bala[0] >= sala3[2]) // Parede Este
 		{
 			bala[0] = sala3[2]-0.001;
 			ang = 90;
@@ -988,6 +1063,9 @@ GLfloat colisoesX(GLfloat x, GLfloat z)
 	// Sala 2
 	if (x > sala2[2]-0.15 && x < sala3[0] && !(z < sala23[1]-0.15 && z > sala23[3]+0.15) && obsP[0] < x) // Parede Este
 		return obsP[0];
+	// Alvo + caixas
+	if (x < alvos[0][0]+0.15 && x > alvos[0][0]-0.1 && z < -3.5 && obsP[0] > x)
+		return obsP[0];
 	
 	// Sala 3
 	if (x < sala3[0]+0.15 && x > sala2[2] && !(z < sala23[1]-0.15 && z > sala23[3]+0.15) && obsP[0] > x)
@@ -1028,6 +1106,9 @@ GLfloat colisoesZ(GLfloat x, GLfloat z)
 	// Sala 2
 	if (z > sala2[1]-0.15 && x < sala2[2]+0.15) // Parede Sul
 		return obsP[2];
+	// Alvo + caixas
+	if (x < alvos[0][0]+0.15 && z < -3.5 && z > -3.6 && obsP[2] > z)
+		return obsP[2];
 	
 	// Sala 2<->3
 	if (x > sala2[2]-0.15 && x < sala3[0] && ((z > sala23[1]-0.15 && obsP[2] < z) || (z < sala23[3]+0.15 && obsP[2] > z))) // Porta
@@ -1046,6 +1127,9 @@ GLfloat colisoesZ(GLfloat x, GLfloat z)
 	if (x > sala3[0]+2-0.15 && x < sala3[2]-2+0.15 && z < sala3[1]-2+0.15 && z > sala3[1]-2.1 && obsP[2] > z)
 		return obsP[2];
 	if (x > sala3[0]+2-0.15 && x < sala3[2]-2+0.15 && z < sala3[1]-2 && z > sala3[1]-2.1-0.15 && obsP[2] < z)
+		return obsP[2];
+	// Alvo
+	if (x > sala3[2]-1.1 && z < sala3[3]+1.95 && obsP[2] > z)
 		return obsP[2];
 		
 	return z;
