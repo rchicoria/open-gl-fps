@@ -874,6 +874,61 @@ void tiro(GLfloat x, GLfloat y, GLfloat z)
 			}
 		}
 		
+		// Sala 3
+		else if (bala[0] <= sala3[0] && obsP[0] >= sala3[0] && bala[0] >= sala2[2] && bala[1] <= alturaSala12 && !(bala[2] <= sala23[1] && bala[2] >= sala23[3] && bala[1] <= 1.25)) // Parede de ligação entre salas 2 e 3
+		{
+			bala[0] = sala3[0]+0.001;
+			ang = 90;
+		}
+		// Parede de blocos de vidro
+		else if (bala[0] <= sala3[2]-2 && obsP[0] >= sala3[2]-2 && bala[0] >= sala3[2]-2.1 && bala[1] <= alturaSala12 && bala[2] < sala3[3]+1.8) // Este
+		{
+			bala[0] = sala3[2]-2+0.001;
+			ang = 90;
+		}
+		else if (bala[0] >= sala3[2]-2.1 && obsP[0] <= sala3[2]-2.1 && bala[0] <= sala3[2]-2 && bala[1] <= alturaSala12 && bala[2] < sala3[3]+2.1) // Oeste
+		{
+			bala[0] = sala3[2]-2.1-0.001;
+			ang = 90;
+		}
+		// Ainda tem de ser feito para a parte com vidro
+		// Parede em T
+		else if (bala[2] <= sala3[1]-2 && obsP[2] >= sala3[1]-2 && bala[2] >= sala3[1]-2.1 && bala[1] <= alturaSala12 && bala[0] >= sala3[0]+2 && bala[0] <= sala3[2]-2) // z=0
+		{
+			bala[2] = sala3[1]-2+0.001;
+			ang = 0;
+		}
+		else if (bala[2] >= sala3[1]-2.1 && obsP[2] <= sala3[1]-2.1 && bala[2] <= sala3[1]-2 && bala[1] <= alturaSala12 && bala[0] >= sala3[0]+2 && bala[0] <= sala3[2]-2) // z=-0.1
+		{
+			bala[2] = sala3[1]-2.1-0.001;
+			ang = 0;
+		}
+		else if (bala[2] >= sala3[1]-4 && obsP[2] <= sala3[1]-4 && bala[2] <= sala3[1]-3.9 && bala[1] <= alturaSala12 && bala[0] >= sala3[0]+4.9 && bala[0] <= sala3[0]+5) // z=-2
+		{
+			bala[2] = sala3[1]-4-0.001;
+			ang = 0;
+		}
+		else if (bala[0] >= sala3[0]+2 && obsP[0] <= sala3[0]+2 && bala[0] <= sala3[0]+2.1 && bala[1] <= alturaSala12 && bala[2] >= sala3[1]-2.1 && bala[2] <= sala3[1]-2) // x=4.1
+		{
+			bala[0] = sala3[0]+2-0.001;
+			ang = 90;
+		}
+		else if (bala[0] <= sala3[2]-2 && obsP[0] >= sala3[2]-2 && bala[0] >= sala3[2]-2.1 && bala[1] <= alturaSala12 && bala[2] >= sala3[1]-2.1 && bala[2] <= sala3[1]-2) // x=9
+		{
+			bala[0] = sala3[2]-2+0.001;
+			ang = 90;
+		}
+		else if (bala[0] >= sala3[0]+4.9 && obsP[0] <= sala3[0]+4.9 && bala[0] <= sala3[0]+5 && bala[1] <= alturaSala12 && bala[2] >= sala3[1]-4 && bala[2] <= sala3[1]-2.1) // x=7
+		{
+			bala[0] = sala3[0]+4.9-0.001;
+			ang = 90;
+		}
+		else if (bala[0] <= sala3[0]+5 && obsP[0] >= sala3[0]+5 && bala[0] >= sala3[0]+4.9 && bala[1] <= alturaSala12 && bala[2] >= sala3[1]-4 && bala[2] <= sala3[1]-2.1) // x=7.1
+		{
+			bala[0] = sala3[0]+5+0.001;
+			ang = 90;
+		}
+		
 		// Ainda não acertou em nada
 		else
 		{
