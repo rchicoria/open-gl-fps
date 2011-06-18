@@ -344,7 +344,7 @@ void furoTiro(GLfloat x, GLfloat y, GLfloat z, GLfloat ang, GLfloat ang2)
     glColor4f(0.3, 0.3, 0.3, 1);
 	glPushMatrix();
 		glTranslatef(x, y, z);
-	    glRotatef(180-ang2, 1, 0, 0);
+	    glRotatef(ang2, 1, 0, 0);
 	    glRotatef(ang, 0, 1, 0);
 	    glutSolidCone(0.015, 0.001, 20, 20);
 	glPopMatrix();
