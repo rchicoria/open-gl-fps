@@ -76,7 +76,7 @@ GLuint fogfilter = 2;
 GLfloat fogColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
 // Furos dos tiros
-GLfloat furos[10][4];
+GLfloat furos[10][5];
 GLint furosPos = 0;
 GLint furosTam = 0;
 GLint furosMax = 10;
@@ -333,13 +333,13 @@ void criaCaixa(float x, float y, float z, float angulo)
 	glDisable(GL_TEXTURE_2D);
 }
 
-void furoTiro(GLfloat x, GLfloat y, GLfloat z, GLfloat ang)
+void furoTiro(GLfloat x, GLfloat y, GLfloat z, GLfloat ang, GLfloat ang2)
 {
 	glDisable(GL_TEXTURE_2D);
     glColor4f(0.3, 0.3, 0.3, 1);
 	glPushMatrix();
 		glTranslatef(x, y, z);
-	    glRotatef(180, 1, 0, 0);
+	    glRotatef(180-ang2, 1, 0, 0);
 	    glRotatef(ang, 0, 1, 0);
 	    glutSolidCone(0.015, 0.001, 20, 20);
 	glPopMatrix();
@@ -499,7 +499,7 @@ void edificio()
 	
 	for (int i=0; i<furosTam; i++)
 	{
-		furoTiro(furos[i][0], furos[i][1], furos[i][2], furos[i][3]);
+		furoTiro(furos[i][0], furos[i][1], furos[i][2], furos[i][3], furos[i][4]);
 	}
 	
 	glDisable(GL_TEXTURE_2D);
@@ -785,34 +785,76 @@ void keyUp(unsigned char key, int x, int y)
  */
 void tiro(GLfloat x, GLfloat y, GLfloat z)
 {
-	/*GLfloat bala[] = {roundf(obsP[0]*10.0f)/10.0f, roundf(obsP[1]*10.0f)/10.0f, roundf(obsP[2]*10.0f)/10.0f};
-	GLfloat alvo[] = {roundf(x*10.0f)/10.0f, roundf(y*10.0f)/10.0f, roundf(z*10.0f)/10.0f};*/
 	GLfloat bala[] = {obsP[0], obsP[1], obsP[2]};
 	GLfloat alvo[] = {x, y, z};
 	GLfloat mov[] = {(alvo[0]-bala[0])/10, (alvo[1]-bala[1])/10, (alvo[2]-bala[2])/10};
 	while (1)
 	{
 		GLfloat ang = 0;
-		if (bala[0] >= sala3[2])
+		GLfloat ang2 = 0;
+		
+		// Paredes exteriores
+		if (bala[0] >= sala3[2]) // Parede Este
 		{
 			bala[0] = sala3[2]-0.001;
 			ang = 90;
 		}
-		else if (bala[0] <= sala1[0])
+		else if (bala[0] <= sala1[0]) // Parede Oeste
 		{
 			bala[0] = sala1[0]+0.001;
 			ang = 90;
 		}
-		else if (bala[2] >= sala1[1])
+		else if (bala[2] >= sala1[1]) // Parede Sul
 		{
 			bala[2] = sala1[1]-0.001;
 			ang = 0;
 		}
-		else if (bala[2] <= sala3[3])
+		else if (bala[2] <= sala3[3]) // Parede Norte
 		{
 			bala[2] = sala3[3]+0.001;
 			ang = 0;
 		}
+		else if (bala[1] <= 0) // Chão
+		{
+			bala[1] = 0.001;
+			ang2 = 90;
+		}
+		else if (bala[1] >= alturaEdificio+1.5) // Tecto
+		{
+			bala[1] = alturaEdificio+1.5-0.001;
+			ang2 = 90;
+		}
+		
+		// Sala 2
+		else if (bala[2] >= sala12[3] && bala[0] <= sala2[2] && bala[1] <= alturaSala12) // Parede de ligação entre salas 1 e 2
+		{
+			if (bala[0] >= sala12[0] && bala[0] <= sala12[2] && bala[1] >= 0 && bala[1] <= 1.25) // Porta de vidro
+			{
+				text_vidro=false;
+				break;
+			}
+			bala[2] = sala12[3]-0.001;
+		}
+		else if (bala[0] >= sala2[2] && obsP[0] <= sala2[2] && bala[0] <= sala3[0] && bala[1] <= alturaSala12 && !(bala[2] <= sala23[1] && bala[2] >= sala23[3] && bala[1] <= 1.25)) // Parede de ligação entre salas 2 e 3
+		{
+			bala[0] = sala2[2]-0.001;
+			ang = 90;
+		}
+		else if (bala[1] >= alturaSala12 && bala[0] <= 0)
+		{
+			if (bala[1]-alturaSala12 < -bala[0]) // Tecto mais baixo
+			{
+				bala[1] = alturaSala12-0.001;
+				ang2 = 90;
+			}
+			else // Parede mais alta
+			{
+				bala[0] = 0.001;
+				ang = 90;
+			}
+		}
+		
+		// Ainda não acertou em nada
 		else
 		{
 			for (int i=0; i<3; i++)
@@ -822,6 +864,7 @@ void tiro(GLfloat x, GLfloat y, GLfloat z)
 		for (int i=0; i<3; i++)
 			furos[furosPos][i] = bala[i];
 		furos[furosPos][3] = ang;
+		furos[furosPos][4] = ang2;
 		furosPos = (furosPos + 1) % furosMax;
 		if (furosTam < furosMax)
 			furosTam++;
