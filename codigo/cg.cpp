@@ -41,7 +41,7 @@ GLfloat sala3[] = {2.1, 2, 11, -5};
 // Câmara
 GLfloat anguloH = 0;
 GLfloat anguloV = 0;
-GLfloat obsP[] = {0, 0.6, 0};
+GLfloat obsP[] = {7, 0.6, -4};
 GLfloat velCamara = 0.003;
 GLfloat passo = 0.0;
 
@@ -78,7 +78,7 @@ GLuint fogfilter = 2;
 GLfloat fogColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
 // Furos dos tiros
-GLfloat furos[10][4];
+GLfloat furos[10][5];
 GLint furosPos = 0;
 GLint furosTam = 0;
 GLint furosMax = 10;
@@ -338,13 +338,13 @@ void criaCaixa(float x, float y, float z, float angulo)
 	glDisable(GL_TEXTURE_2D);
 }
 
-void furoTiro(GLfloat x, GLfloat y, GLfloat z, GLfloat ang)
+void furoTiro(GLfloat x, GLfloat y, GLfloat z, GLfloat ang, GLfloat ang2)
 {
 	glDisable(GL_TEXTURE_2D);
     glColor4f(0.3, 0.3, 0.3, 1);
 	glPushMatrix();
 		glTranslatef(x, y, z);
-	    glRotatef(180, 1, 0, 0);
+	    glRotatef(180-ang2, 1, 0, 0);
 	    glRotatef(ang, 0, 1, 0);
 	    glutSolidCone(0.015, 0.001, 20, 20);
 	glPopMatrix();
@@ -506,7 +506,7 @@ void edificio()
 	
 	for (int i=0; i<furosTam; i++)
 	{
-		furoTiro(furos[i][0], furos[i][1], furos[i][2], furos[i][3]);
+		furoTiro(furos[i][0], furos[i][1], furos[i][2], furos[i][3], furos[i][4]);
 	}
 	
 	glDisable(GL_TEXTURE_2D);
@@ -520,6 +520,8 @@ void mapa()
 	glEnable(GL_TEXTURE_2D);
 	
 	glBindTexture(GL_TEXTURE_2D,texture[0]);
+	
+	// Geral
 	criaHorizontal(sala3[2]+0.1, -0.1, sala1[1]+0.1, sala1[0]-0.1, -0.1, sala3[3]-0.1); // Chão
 	glBindTexture(GL_TEXTURE_2D,texture[1]);
 	criaHorizontal(sala1[2], 0, sala1[1], sala1[0], 0, sala1[3]); // Sala 1
@@ -527,6 +529,13 @@ void mapa()
 	criaHorizontal(sala2[2], 0, sala2[1], sala2[0], 0, sala2[3]); // Sala 2
 	criaHorizontal(sala23[2], 1.25, sala23[1], sala23[0], 1.25, sala23[3]); // Sala 2 <-> Sala 3
 	criaHorizontal(sala3[2], 0, sala3[1], sala3[0], 0, sala3[3]); // Sala 3
+	
+	// Pormenores
+	glBindTexture(GL_TEXTURE_2D,texture[0]);
+	criaHorizontal(sala3[2]-2, 0.1, sala3[3]+2.1, sala3[2]-2.1, 0.1, sala3[3]); // Parede vidro 1
+	criaHorizontal(sala3[2]-1.1, 0.1, sala3[3]+2.1, sala3[2]-2.1, 0.1, sala3[3]+1.8); // Parede vidro 2
+	criaHorizontal(sala3[2]-2, 0.1, sala3[1]-2, sala3[0]+2, 0.1, sala3[1]-2.1); // Parede em T 1
+	criaHorizontal(sala3[0]+5.1, 0.1, sala3[1]-2.1, sala3[0]+5, 0.1, sala3[1]-4); // Parede em T 2
 	
 	glDisable(GL_TEXTURE_2D);
 }
@@ -796,34 +805,76 @@ void keyUp(unsigned char key, int x, int y)
  */
 void tiro(GLfloat x, GLfloat y, GLfloat z)
 {
-	/*GLfloat bala[] = {roundf(obsP[0]*10.0f)/10.0f, roundf(obsP[1]*10.0f)/10.0f, roundf(obsP[2]*10.0f)/10.0f};
-	GLfloat alvo[] = {roundf(x*10.0f)/10.0f, roundf(y*10.0f)/10.0f, roundf(z*10.0f)/10.0f};*/
 	GLfloat bala[] = {obsP[0], obsP[1], obsP[2]};
 	GLfloat alvo[] = {x, y, z};
 	GLfloat mov[] = {(alvo[0]-bala[0])/10, (alvo[1]-bala[1])/10, (alvo[2]-bala[2])/10};
 	while (1)
 	{
 		GLfloat ang = 0;
-		if (bala[0] >= sala3[2])
+		GLfloat ang2 = 0;
+		
+		// Paredes exteriores
+		if (bala[0] >= sala3[2]) // Parede Este
 		{
 			bala[0] = sala3[2]-0.001;
 			ang = 90;
 		}
-		else if (bala[0] <= sala1[0])
+		else if (bala[0] <= sala1[0]) // Parede Oeste
 		{
 			bala[0] = sala1[0]+0.001;
 			ang = 90;
 		}
-		else if (bala[2] >= sala1[1])
+		else if (bala[2] >= sala1[1]) // Parede Sul
 		{
 			bala[2] = sala1[1]-0.001;
 			ang = 0;
 		}
-		else if (bala[2] <= sala3[3])
+		else if (bala[2] <= sala3[3]) // Parede Norte
 		{
 			bala[2] = sala3[3]+0.001;
 			ang = 0;
 		}
+		else if (bala[1] <= 0) // Chão
+		{
+			bala[1] = 0.001;
+			ang2 = 90;
+		}
+		else if (bala[1] >= alturaEdificio+1.5) // Tecto
+		{
+			bala[1] = alturaEdificio+1.5-0.001;
+			ang2 = 90;
+		}
+		
+		// Sala 2
+		else if (bala[2] >= sala12[3] && bala[0] <= sala2[2] && bala[1] <= alturaSala12) // Parede de ligação entre salas 1 e 2
+		{
+			if (bala[0] >= sala12[0] && bala[0] <= sala12[2] && bala[1] >= 0 && bala[1] <= 1.25) // Porta de vidro
+			{
+				text_vidro=false;
+				break;
+			}
+			bala[2] = sala12[3]-0.001;
+		}
+		else if (bala[0] >= sala2[2] && obsP[0] <= sala2[2] && bala[0] <= sala3[0] && bala[1] <= alturaSala12 && !(bala[2] <= sala23[1] && bala[2] >= sala23[3] && bala[1] <= 1.25)) // Parede de ligação entre salas 2 e 3
+		{
+			bala[0] = sala2[2]-0.001;
+			ang = 90;
+		}
+		else if (bala[1] >= alturaSala12 && bala[0] <= 0)
+		{
+			if (bala[1]-alturaSala12 < -bala[0]) // Tecto mais baixo
+			{
+				bala[1] = alturaSala12-0.001;
+				ang2 = 90;
+			}
+			else // Parede mais alta
+			{
+				bala[0] = 0.001;
+				ang = 90;
+			}
+		}
+		
+		// Ainda não acertou em nada
 		else
 		{
 			for (int i=0; i<3; i++)
@@ -833,6 +884,7 @@ void tiro(GLfloat x, GLfloat y, GLfloat z)
 		for (int i=0; i<3; i++)
 			furos[furosPos][i] = bala[i];
 		furos[furosPos][3] = ang;
+		furos[furosPos][4] = ang2;
 		furosPos = (furosPos + 1) % furosMax;
 		if (furosTam < furosMax)
 			furosTam++;
@@ -868,6 +920,67 @@ void mouseMovement(int x, int y) {
 }
 
 /*
+ *	Detecta colisões segundo o eixo dos x
+ */
+GLfloat colisoesX(GLfloat x, GLfloat z)
+{
+	// Global
+	if (x < sala2[0]+0.15) // Parede Oeste
+		return obsP[0];
+	if (x > sala3[2]-0.15) // Parede Este
+		return obsP[0];
+	
+	// Sala 2
+	if (x > sala2[2]-0.15 && x < sala3[0] && !(z < sala23[1]-0.15 && z > sala23[3]+0.15) && obsP[0] < x) // Parede Este
+		return obsP[0];
+	
+	// Sala 3
+	if (x < sala3[0]+0.15 && x > sala2[2] && !(z < sala23[1]-0.15 && z > sala23[3]+0.15) && obsP[0] > x)
+		return obsP[0];
+	// Parede de blocos de vidro
+	if (x > sala3[2]-2.1-0.15 && x < sala3[2]-2 && z < sala3[3]+2.1+0.15 && obsP[0] < x)
+		if (sala3[2]-x >= -(sala3[3]-z))
+			return obsP[0];
+	if (x > sala3[2]-2.1 && x < sala3[2]-2+0.15 && z < sala3[3]+2.1+0.15 && obsP[0] > x)
+		if (sala3[2]-x+0.1 >= -(sala3[3]-z))
+			return obsP[0];
+	if (x > sala3[2]-1 && x < sala3[2]-1+0.15 && z < sala3[3]+2.1+0.15 && z > sala3[3]+1.8-0.15 && obsP[0] > x)
+		return obsP[0];
+		
+	return x;
+}
+
+/*
+ *	Detecta colisões segundo o eixo dos z
+ */
+GLfloat colisoesZ(GLfloat x, GLfloat z)
+{
+	// Global
+	if (z > sala3[1]-0.15) // Parede Sul
+		return obsP[2];
+	if (z < sala3[3]+0.15) // Parede Norte
+		return obsP[2];
+	
+	// Sala 2
+	if (z > sala2[1]-0.15 && x < sala2[2]+0.15) // Parede Sul
+		return obsP[2];
+	
+	// Sala 2<->3
+	if (x > sala2[2]-0.15 && x < sala3[0] && ((z > sala23[1]-0.15 && obsP[2] < z) || (z < sala23[3]+0.15 && obsP[2] > z))) // Porta
+		return obsP[2];
+	
+	// Sala 3
+	// Parede de blocos de vidro
+	if (x > sala3[2]-2.1-0.15 && x < sala3[2]-1.1+0.15 && z < sala3[3]+2.1+0.15 && obsP[2] > z)
+		if (sala3[2]-x <= -(sala3[3]-z))
+			return obsP[2];
+	if (x > sala3[2]-2.1 && x < sala3[2]-1.1+0.15 && z > sala3[3]+1.8-0.15 && obsP[2] < z)
+		return obsP[2];
+		
+	return z;
+}
+
+/*
  *	Timer
  */
 void Timer(int value)
@@ -875,28 +988,29 @@ void Timer(int value)
 	int anda = 0;
 	
 	// Movimento
+	GLfloat novoObsP[] = {obsP[0], obsP[1], obsP[2]};
 	if (frente)
 	{
-		obsP[2] -= vel * cos(anguloH) * factorResize;
-		obsP[0] += vel * sin(anguloH) * factorResize;
+		novoObsP[2] -= vel * cos(anguloH) * factorResize;
+		novoObsP[0] += vel * sin(anguloH) * factorResize;
 		anda = 1;
 	}
 	if (atras)
 	{
-		obsP[2] += vel * cos(anguloH) * factorResize;
-		obsP[0] -= vel * sin(anguloH) * factorResize;
+		novoObsP[2] += vel * cos(anguloH) * factorResize;
+		novoObsP[0] -= vel * sin(anguloH) * factorResize;
 		anda = 1;
 	}
 	if (esquerda)
 	{
-		obsP[2] += vel * cos(anguloH + 3.14/2) * factorResize;
-		obsP[0] -= vel * sin(anguloH + 3.14/2) * factorResize;
+		novoObsP[2] += vel * cos(anguloH + 3.14/2) * factorResize;
+		novoObsP[0] -= vel * sin(anguloH + 3.14/2) * factorResize;
 		anda = 1;
 	}
 	if (direita)
 	{
-		obsP[2] -= vel * cos(anguloH + 3.14/2) * factorResize;
-		obsP[0] += vel * sin(anguloH + 3.14/2) * factorResize;
+		novoObsP[2] -= vel * cos(anguloH + 3.14/2) * factorResize;
+		novoObsP[0] += vel * sin(anguloH + 3.14/2) * factorResize;
 		anda = 1;
 	}
 	if (anda > 0)
@@ -905,6 +1019,8 @@ void Timer(int value)
 		if (passo > 3.14)
 			passo -= 3.14;
 	}
+	obsP[0] = colisoesX(novoObsP[0], novoObsP[2]);
+	obsP[2] = colisoesZ(novoObsP[0], novoObsP[2]);
 	
 	// Rato
 	glutWarpPointer(wScreen/2, hScreen/2);
