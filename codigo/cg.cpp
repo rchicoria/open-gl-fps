@@ -58,6 +58,8 @@ bool text_vidro = true;
 // Luz ambiente
 GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
 GLfloat localCor[4] ={0.4, 0.4, 0.4, 1.0};
+GLfloat localDif[4] ={1,1,1,1};
+GLfloat localSpec[4] ={1,1,1,1};
 GLfloat localPos1[4] ={1.9, 1.0, 1.9, 1.0};
 GLfloat localPos2[4] ={-1, 1.0, -3.5, 1.0};
 GLfloat localPos3[4] ={5, 1.0, -2, 1.0};
@@ -86,6 +88,8 @@ GLfloat goldAmbient[] = {0.24725, 0.1995, 0.0745};
 GLfloat goldDiffuse[] = {0.75164, 0.60648, 0.22648};
 GLfloat goldSpecular[] = {0.628281, 0.555802, 0.366065};
 GLfloat goldShininess = 128 * 0.4;
+
+void iluminacao();
 
 /*
  *	Cria uma nova textura e guarda-a no array de texturas
@@ -133,15 +137,14 @@ void init(void)
 	glutSetCursor(GLUT_CURSOR_NONE);
 	glutFullScreen();
 	
-	glShadeModel(GL_SMOOTH);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
-	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
     
     textures();
     
+    glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
 	// Nevoeiro
 	glFogi(GL_FOG_MODE, fogMode[fogfilter]);
 	glFogfv(GL_FOG_COLOR, fogColor);
@@ -196,7 +199,7 @@ void iluminaSala(int sala, int view=PERSPECTIVE)
 	switch (sala)
 	{
 		case 1:
-			light = GL_LIGHT4;
+			light = GL_LIGHT0;
 			break;
 		case 2:
 			light = GL_LIGHT1;
@@ -216,7 +219,7 @@ void iluminaSala(int sala, int view=PERSPECTIVE)
  */
 void apagaLuzes()
 {
-	glDisable(GL_LIGHT4);
+	glDisable(GL_LIGHT0);
 	glDisable(GL_LIGHT1);
 	glDisable(GL_LIGHT2);
 }
@@ -533,23 +536,28 @@ void mapa()
  */
 void iluminacao()
 {
-    glLightfv(GL_LIGHT4, GL_POSITION, localPos1);
-    glLightfv(GL_LIGHT4, GL_AMBIENT, localCor);
-    glLightf (GL_LIGHT4, GL_CONSTANT_ATTENUATION, localAttCon);
-    glLightf (GL_LIGHT4, GL_LINEAR_ATTENUATION, localAttLin);
-    glLightf (GL_LIGHT4, GL_QUADRATIC_ATTENUATION, localAttQua);
+    glLightfv(GL_LIGHT0, GL_POSITION, localPos1);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
+    glLightf (GL_LIGHT0, GL_CONSTANT_ATTENUATION, localAttCon);
+    glLightf (GL_LIGHT0, GL_LINEAR_ATTENUATION, localAttLin);
+    glLightf (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, localAttQua);
     
     glLightfv(GL_LIGHT1, GL_POSITION, localPos2);
     glLightfv(GL_LIGHT1, GL_AMBIENT, localCor);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, localDif );
+    glLightfv(GL_LIGHT1, GL_SPECULAR, localSpec );
     glLightf (GL_LIGHT1, GL_CONSTANT_ATTENUATION, localAttCon);
     glLightf (GL_LIGHT1, GL_LINEAR_ATTENUATION, localAttLin);
     glLightf (GL_LIGHT1, GL_QUADRATIC_ATTENUATION, localAttQua);
     
     glLightfv(GL_LIGHT2, GL_POSITION, localPos3);
     glLightfv(GL_LIGHT2, GL_AMBIENT, localCor);
+    glLightfv(GL_LIGHT2, GL_DIFFUSE, localDif );
+    glLightfv(GL_LIGHT2, GL_SPECULAR, localSpec );
     glLightf (GL_LIGHT2, GL_CONSTANT_ATTENUATION, localAttCon);
     glLightf (GL_LIGHT2, GL_LINEAR_ATTENUATION, localAttLin);
     glLightf (GL_LIGHT2, GL_QUADRATIC_ATTENUATION, localAttQua);
+    glShadeModel(GL_SMOOTH);
     apagaLuzes();
 }
 
@@ -557,12 +565,9 @@ void iluminacao()
  *	Preenche o cenário com os vários objectos
  */
 void cenario(int view)
-{
-    iluminacao();
-	
+{   
 	// Sala 1
 	iluminaSala(1, view);
-	
 	glPushMatrix();
 		glColor4f(0.0, 1.0, 0.0, 1.0);
 		glTranslatef(0, 0.5, 0);
@@ -649,6 +654,8 @@ void display(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(obsP[0], obsP[1]+0.04*sin(passo), obsP[2], obsL[0], obsL[1], obsL[2], 0, 1, 0);
+	
+	iluminacao();
 	
 	// Objectos do cenário
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
