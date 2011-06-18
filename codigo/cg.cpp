@@ -75,6 +75,12 @@ GLuint fogMode[] = { GL_EXP, GL_EXP2, GL_LINEAR };
 GLuint fogfilter = 2;
 GLfloat fogColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
+// Furos dos tiros
+GLfloat furos[5][3];
+GLint furosPos = 0;
+GLint furosTam = 0;
+GLfloat tamFuro = 0.02;
+
 // Materiais
 GLfloat goldAmbient[] = {0.24725, 0.1995, 0.0745};
 GLfloat goldDiffuse[] = {0.75164, 0.60648, 0.22648};
@@ -321,11 +327,32 @@ void criaCaixa(float x, float y, float z, float angulo)
 	glDisable(GL_TEXTURE_2D);
 }
 
+void furoTiro(GLfloat x, GLfloat y, GLfloat z)
+{
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,texture[0]);
+	glPushMatrix();
+		glTranslatef(x, y, z);
+		criaParedeTexturaUnica(-tamFuro, -tamFuro, -tamFuro, -tamFuro, tamFuro, tamFuro);
+		criaParedeTexturaUnica(tamFuro, -tamFuro, -tamFuro, -tamFuro, tamFuro, -tamFuro);
+		criaParedeTexturaUnica(-tamFuro, -tamFuro, tamFuro, tamFuro, tamFuro, tamFuro);
+		criaParedeTexturaUnica(tamFuro, -tamFuro, tamFuro, tamFuro, tamFuro, -tamFuro);
+		criaHorizontalTexturaUnica(-tamFuro, tamFuro, -tamFuro, tamFuro, tamFuro, tamFuro);
+		criaHorizontalTexturaUnica(-tamFuro, -tamFuro, tamFuro, tamFuro, -tamFuro, -tamFuro);
+	glPopMatrix();
+	
+	glDisable(GL_TEXTURE_2D);
+}
+
 /*
  *	Desenha as paredes, chão e tecto do pavilhão
  */
 void edificio()
 {
+	for (int i=0; i<furosTam; i++)
+	{
+		furoTiro(furos[i][0], furos[i][1], furos[i][2]);
+	}
 	glEnable(GL_TEXTURE_2D);
 	
 	// Chão e tecto
@@ -740,11 +767,34 @@ void keyUp(unsigned char key, int x, int y)
 /*
  *	Descobre onde é que o tiro acertou e faz qualquer coisa aí
  */
-void tiro(GLfloat x, GLfloat y, GLfloat z, GLfloat angH, GLfloat angV)
+void tiro(GLfloat x, GLfloat y, GLfloat z)
 {
-	GLfloat modAngH = angH;
-	printf("(%f,%f,%f) H=%f V=%f\n", x,y,z, angH, angV);
-	
+	GLfloat bala[] = {roundf(obsP[0]*10.0f)/10.0f, roundf(obsP[1]*10.0f)/10.0f, roundf(obsP[2]*10.0f)/10.0f};
+	GLfloat alvo[] = {roundf(x*10.0f)/10.0f, roundf(y*10.0f)/10.0f, roundf(z*10.0f)/10.0f};
+	GLfloat mov[] = {(alvo[0]-bala[0])/10, (alvo[1]-bala[1])/10, (alvo[2]-bala[2])/10};
+	while (1)
+	{
+		if (bala[0] >= sala3[2])
+			bala[0] = sala3[2]+tamFuro/1.1;
+		else if (bala[0] <= sala1[0])
+			bala[0] = sala1[0]-tamFuro/1.1;
+		else if (bala[2] >= sala1[1])
+			bala[2] = sala1[1]+tamFuro/1.1;
+		else if (bala[2] <= sala3[3])
+			bala[2] = sala3[3]-tamFuro/1.1;
+		else
+		{
+			for (int i=0; i<3; i++)
+				bala[i] += mov[i];
+			continue;
+		}
+		for (int i=0; i<3; i++)
+			furos[furosPos][i] = bala[i];
+		furosPos = (furosPos + 1) % 5;
+		if (furosTam < 5)
+			furosTam++;
+		break;
+	}
 }
 
 /*
@@ -755,7 +805,7 @@ void mouseClick(int button, int state, int x, int y)
 	if ((button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN))
 	{
 		recoil = 0.12;
-		tiro(obsP[0], obsP[1], obsP[2], anguloH, anguloV);
+		tiro(cos(anguloH-3.14/2)+obsP[0], obsP[1]+anguloV+0.04*sin(passo), sin(anguloH-3.14/2)+obsP[2]);
 	}
 }
 
