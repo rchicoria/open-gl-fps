@@ -531,6 +531,8 @@ void mapa()
 	glBindTexture(GL_TEXTURE_2D,texture[0]);
 	criaHorizontal(sala3[2]-2, 0.1, sala3[3]+2.1, sala3[2]-2.1, 0.1, sala3[3]); // Parede vidro 1
 	criaHorizontal(sala3[2]-1.1, 0.1, sala3[3]+2.1, sala3[2]-2.1, 0.1, sala3[3]+1.8); // Parede vidro 2
+	criaHorizontal(sala3[2]-2, 0.1, sala3[1]-2, sala3[0]+2, 0.1, sala3[1]-2.1); // Parede em T 1
+	criaHorizontal(sala3[0]+5.1, 0.1, sala3[1]-2.1, sala3[0]+5, 0.1, sala3[1]-4); // Parede em T 2
 	
 	glDisable(GL_TEXTURE_2D);
 }
