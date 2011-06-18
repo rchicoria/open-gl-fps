@@ -121,6 +121,8 @@ void textures()
 	criaTextura(8, "img/arma.bmp");
 	criaTextura(9, "img/glassblock.bmp");
 	criaTextura(10, "img/broken_glass.bmp");
+	criaTextura(11, "img/tecto.bmp");
+	criaTextura(12, "img/tecto2.bmp");
 }
 
 /*
@@ -367,8 +369,9 @@ void edificio()
 	criaParede(sala3[0], 0, sala1[1], sala1[0], alturaSala12, sala1[1]);
 	criaParede(sala1[0], 0, sala1[1], sala1[0], alturaSala12, sala1[3]);
 	criaParede(sala1[2], 0, sala1[3], sala1[2], alturaSala12, sala1[1]);
-	glBindTexture(GL_TEXTURE_2D,texture[4]);
+	glBindTexture(GL_TEXTURE_2D,texture[11]);
 	criaHorizontal(sala1[0], alturaSala12, sala1[1], sala1[2], alturaSala12, sala1[3]);
+    glBindTexture(GL_TEXTURE_2D,texture[4]);
     criaHorizontal(sala1[2], 0, sala1[1], sala1[0], 0, sala1[3]);
 	apagaLuzes();
 	
@@ -417,7 +420,7 @@ void edificio()
 	criaParede(sala2[2], 1.25, sala2[3], sala2[2], alturaSala12, sala2[1]);
 	criaParede(sala2[2], 0, sala23[1], sala2[2], 1.25, sala2[1]);
 	criaParede(sala2[2], 0, sala2[3], sala2[2], 1.25, sala23[3]);
-	glBindTexture(GL_TEXTURE_2D,texture[4]);
+	glBindTexture(GL_TEXTURE_2D,texture[11]);
 	criaHorizontal(sala2[0], alturaSala12, sala2[1], sala2[0]+2, alturaSala12, sala2[3]);
 	apagaLuzes();
 	
@@ -446,8 +449,9 @@ void edificio()
 	criaParede(sala3[2], 0, sala3[1], sala3[0], alturaSala12, sala3[1]);
 	criaParede(sala3[0], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[3]);
 	criaParede(sala3[2], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[1]);
-	glBindTexture(GL_TEXTURE_2D,texture[4]);
+	glBindTexture(GL_TEXTURE_2D,texture[12]);
 	criaHorizontal(sala1[0], alturaEdificio+1.5, sala1[1], sala3[2], alturaEdificio+1.5, sala3[3]);
+	glBindTexture(GL_TEXTURE_2D,texture[4]);
 	criaHorizontal(sala3[2], 0, sala1[1], sala3[0], 0, sala3[3]);
 	
 	// -------interior sala 3-----------
