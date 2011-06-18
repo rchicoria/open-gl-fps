@@ -182,7 +182,7 @@ float mod(float n)
 /*
  *	Liga ou desliga a luz da sala pretendida
  */
-bool iluminaSala(int sala)
+void iluminaSala(int sala, int view=PERSPECTIVE)
 {
 	GLint light;
 	switch (sala)
@@ -197,16 +197,10 @@ bool iluminaSala(int sala)
 			light = GL_LIGHT2;
 			break;
 	}
-	if (lampadas[sala-1])
-	{
+	if (lampadas[sala-1] || view == MAP)
 		glEnable(light);
-		return true;
-	}
 	else
-	{
 		glDisable(light);
-		return false;
-	}
 }
 
 /*
@@ -351,12 +345,41 @@ void edificio()
 	criaParede(sala3[0], 0, sala1[1], sala1[0], alturaEdificio+1.5, sala1[1]);
 	criaParede(sala1[0], 0, sala1[1], sala1[0], alturaSala12, sala1[3]);
 	criaParede(sala1[2], 0, sala1[3], sala1[2], alturaSala12, sala1[1]);
+	apagaLuzes();
 	
 	// Sala 1 <-> Sala 2
+	iluminaSala(1);
+	iluminaSala(2);
 	glBindTexture(GL_TEXTURE_2D,texture[3]);
 	criaParede(sala12[0], 0, sala12[1], sala12[0], 1.25, sala12[3]);
 	criaParede(sala12[2], 0, sala12[3], sala12[2], 1.25, sala12[1]);
 	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
+	// Vidro
+	if(text_vidro)
+	    glBindTexture(GL_TEXTURE_2D,texture[5]);
+	else
+	    glBindTexture(GL_TEXTURE_2D,texture[10]);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1,1,1,0.5);
+    criaParedeTexturaUnica(sala12[2], 0, sala12[1], sala12[0], 1.25, sala12[1]);
+	// Aluminio
+	glBindTexture(GL_TEXTURE_2D,texture[6]);
+	glDisable(GL_BLEND);
+	glPushMatrix();
+	    criaParede(sala12[2], 1.2, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
+	    criaParede(sala12[2], 0, sala12[1]-0.005, sala12[0], 0.05, sala12[1]-0.005);
+	    criaParede(sala12[2], 0, sala12[1]-0.005, sala12[2]-0.05, 1.25, sala12[1]-0.005);
+	    criaParede(sala12[0]+0.05, 0, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
+	    glDisable(GL_TEXTURE_2D);
+	    glColor4f(0,0,0,1);
+	    criaParede(sala12[0]+0.055, 0.05, sala12[1], sala12[0]+0.05, 1.25, sala12[1]-0.005);
+	    criaParede(sala12[2]-0.05, 0.05, sala12[1]-0.005, sala12[2]-0.055, 1.25, sala12[1]);
+        criaHorizontal(sala12[0], 1.2, sala12[1], sala12[2], 1.2, sala12[1]-0.005);
+        criaHorizontal(sala12[2], 0.05, sala12[1], sala12[0], 0.05, sala12[1]-0.005);
+        glColor4f(1,1,1,1);
+        glEnable(GL_TEXTURE_2D);
+	glPopMatrix();
 	apagaLuzes();
 	
 	// Sala 2
@@ -370,8 +393,11 @@ void edificio()
 	criaParede(sala2[2], 1.25, sala2[3], sala2[2], alturaSala12, sala2[1]);
 	criaParede(sala2[2], 0, sala23[1], sala2[2], 1.25, sala2[1]);
 	criaParede(sala2[2], 0, sala2[3], sala2[2], 1.25, sala23[3]);
+	apagaLuzes();
 	
 	// Sala 2 <-> Sala 3
+	iluminaSala(2);
+	iluminaSala(3);
 	glBindTexture(GL_TEXTURE_2D,texture[3]);
 	criaParede(sala23[2], 0, sala23[1], sala23[0], 1.25, sala23[1]);
 	criaParede(sala23[0], 0, sala23[3], sala23[2], 1.25, sala23[3]);
@@ -435,34 +461,6 @@ void edificio()
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
 	
 	apagaLuzes();
-	
-	// Vidro
-	if(text_vidro)
-	    glBindTexture(GL_TEXTURE_2D,texture[5]);
-	else
-	    glBindTexture(GL_TEXTURE_2D,texture[10]);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(1,1,1,0.5);
-    criaParedeTexturaUnica(sala12[2], 0, sala12[1], sala12[0], 1.25, sala12[1]);
-	
-	// Aluminio
-	glBindTexture(GL_TEXTURE_2D,texture[6]);
-	glDisable(GL_BLEND);
-	glPushMatrix();
-	    criaParede(sala12[2], 1.2, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
-	    criaParede(sala12[2], 0, sala12[1]-0.005, sala12[0], 0.05, sala12[1]-0.005);
-	    criaParede(sala12[2], 0, sala12[1]-0.005, sala12[2]-0.05, 1.25, sala12[1]-0.005);
-	    criaParede(sala12[0]+0.05, 0, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
-	    glDisable(GL_TEXTURE_2D);
-	    glColor4f(0,0,0,1);
-	    criaParede(sala12[0]+0.055, 0.05, sala12[1], sala12[0]+0.05, 1.25, sala12[1]-0.005);
-	    criaParede(sala12[2]-0.05, 0.05, sala12[1]-0.005, sala12[2]-0.055, 1.25, sala12[1]);
-        criaHorizontal(sala12[0], 1.2, sala12[1], sala12[2], 1.2, sala12[1]-0.005);
-        criaHorizontal(sala12[2], 0.05, sala12[1], sala12[0], 0.05, sala12[1]-0.005);
-	glPopMatrix(); 
-	
-	
 }
 
 /*
@@ -517,10 +515,7 @@ void cenario(int view)
     iluminacao();
 	
 	// Sala 1
-	if (view == PERSPECTIVE)
-		iluminaSala(1);
-	else
-		glEnable(GL_LIGHT0);
+	iluminaSala(1, view);
 	
 	glPushMatrix();
 		glColor4f(0.0, 1.0, 0.0, 1.0);
@@ -548,20 +543,14 @@ void cenario(int view)
 	apagaLuzes();
 	
 	// Sala 2
-	if (view == PERSPECTIVE)
-		iluminaSala(2);
-	else
-		glEnable(GL_LIGHT1);
+	iluminaSala(2, view);
 	
 	criaCaixa(1, 0.2, -3.5, 35);
 	
 	apagaLuzes();
 	
 	// Sala 3
-	if (view == PERSPECTIVE)
-		iluminaSala(3);
-	else
-		glEnable(GL_LIGHT2);
+	iluminaSala(3, view);
 	
 	criaCaixa(10, 0.2, -3.8, 30);
 	criaCaixa(9.55, 0.2, -4, 10);
@@ -712,6 +701,7 @@ void keyPress(unsigned char key, int x, int y)
 		    else 
 	            text_vidro=true;    
 		    break;
+		
 		case 27: // Esq
 			exit(0);
 			break;
