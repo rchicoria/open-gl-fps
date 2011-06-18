@@ -558,6 +558,11 @@ void cenario(int view)
 	apagaLuzes();
 	
 	// Sala 3
+	if (view == PERSPECTIVE)
+		iluminaSala(3);
+	else
+		glEnable(GL_LIGHT2);
+	
 	criaCaixa(10, 0.2, -3.8, 30);
 	criaCaixa(9.55, 0.2, -4, 10);
 	criaCaixa(9.7, 0.6, -3.8, 55);
@@ -565,6 +570,8 @@ void cenario(int view)
 	criaCaixa(6, 0.2, 0.5, 30);
 	criaCaixa(5.55, 0.2, 0.8, 10);
 	criaCaixa(5.7, 0.6, 0.5, 55);
+	
+	apagaLuzes();
 	
 	// Edifício
 	if (view == PERSPECTIVE)
