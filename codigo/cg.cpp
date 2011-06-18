@@ -742,6 +742,7 @@ void keyUp(unsigned char key, int x, int y)
  */
 void tiro(GLfloat x, GLfloat y, GLfloat z, GLfloat angH, GLfloat angV)
 {
+	GLfloat modAngH = angH;
 	printf("(%f,%f,%f) H=%f V=%f\n", x,y,z, angH, angV);
 	
 }
