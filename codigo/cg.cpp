@@ -41,7 +41,7 @@ GLfloat sala3[] = {2.1, 2, 11, -5};
 // Câmara
 GLfloat anguloH = 0;
 GLfloat anguloV = 0;
-GLfloat obsP[] = {0, 0.6, 0};
+GLfloat obsP[] = {7, 0.6, -4};
 GLfloat velCamara = 0.003;
 GLfloat passo = 0.0;
 
@@ -517,6 +517,8 @@ void mapa()
 	glEnable(GL_TEXTURE_2D);
 	
 	glBindTexture(GL_TEXTURE_2D,texture[0]);
+	
+	// Geral
 	criaHorizontal(sala3[2]+0.1, -0.1, sala1[1]+0.1, sala1[0]-0.1, -0.1, sala3[3]-0.1); // Chão
 	glBindTexture(GL_TEXTURE_2D,texture[1]);
 	criaHorizontal(sala1[2], 0, sala1[1], sala1[0], 0, sala1[3]); // Sala 1
@@ -524,6 +526,11 @@ void mapa()
 	criaHorizontal(sala2[2], 0, sala2[1], sala2[0], 0, sala2[3]); // Sala 2
 	criaHorizontal(sala23[2], 1.25, sala23[1], sala23[0], 1.25, sala23[3]); // Sala 2 <-> Sala 3
 	criaHorizontal(sala3[2], 0, sala3[1], sala3[0], 0, sala3[3]); // Sala 3
+	
+	// Pormenores
+	glBindTexture(GL_TEXTURE_2D,texture[0]);
+	criaHorizontal(sala3[2]-2, 0.1, sala3[3]+2.1, sala3[2]-2.1, 0.1, sala3[3]); // Parede vidro 1
+	criaHorizontal(sala3[2]-1.1, 0.1, sala3[3]+2.1, sala3[2]-2.1, 0.1, sala3[3]+1.8); // Parede vidro 2
 	
 	glDisable(GL_TEXTURE_2D);
 }
@@ -904,6 +911,67 @@ void mouseMovement(int x, int y) {
 }
 
 /*
+ *	Detecta colisões segundo o eixo dos x
+ */
+GLfloat colisoesX(GLfloat x, GLfloat z)
+{
+	// Global
+	if (x < sala2[0]+0.15) // Parede Oeste
+		return obsP[0];
+	if (x > sala3[2]-0.15) // Parede Este
+		return obsP[0];
+	
+	// Sala 2
+	if (x > sala2[2]-0.15 && x < sala3[0] && !(z < sala23[1]-0.15 && z > sala23[3]+0.15) && obsP[0] < x) // Parede Este
+		return obsP[0];
+	
+	// Sala 3
+	if (x < sala3[0]+0.15 && x > sala2[2] && !(z < sala23[1]-0.15 && z > sala23[3]+0.15) && obsP[0] > x)
+		return obsP[0];
+	// Parede de blocos de vidro
+	if (x > sala3[2]-2.1-0.15 && x < sala3[2]-2 && z < sala3[3]+2.1+0.15 && obsP[0] < x)
+		if (sala3[2]-x >= -(sala3[3]-z))
+			return obsP[0];
+	if (x > sala3[2]-2.1 && x < sala3[2]-2+0.15 && z < sala3[3]+2.1+0.15 && obsP[0] > x)
+		if (sala3[2]-x+0.1 >= -(sala3[3]-z))
+			return obsP[0];
+	if (x > sala3[2]-1 && x < sala3[2]-1+0.15 && z < sala3[3]+2.1+0.15 && z > sala3[3]+1.8-0.15 && obsP[0] > x)
+		return obsP[0];
+		
+	return x;
+}
+
+/*
+ *	Detecta colisões segundo o eixo dos z
+ */
+GLfloat colisoesZ(GLfloat x, GLfloat z)
+{
+	// Global
+	if (z > sala3[1]-0.15) // Parede Sul
+		return obsP[2];
+	if (z < sala3[3]+0.15) // Parede Norte
+		return obsP[2];
+	
+	// Sala 2
+	if (z > sala2[1]-0.15 && x < sala2[2]+0.15) // Parede Sul
+		return obsP[2];
+	
+	// Sala 2<->3
+	if (x > sala2[2]-0.15 && x < sala3[0] && ((z > sala23[1]-0.15 && obsP[2] < z) || (z < sala23[3]+0.15 && obsP[2] > z))) // Porta
+		return obsP[2];
+	
+	// Sala 3
+	// Parede de blocos de vidro
+	if (x > sala3[2]-2.1-0.15 && x < sala3[2]-1.1+0.15 && z < sala3[3]+2.1+0.15 && obsP[2] > z)
+		if (sala3[2]-x <= -(sala3[3]-z))
+			return obsP[2];
+	if (x > sala3[2]-2.1 && x < sala3[2]-1.1+0.15 && z > sala3[3]+1.8-0.15 && obsP[2] < z)
+		return obsP[2];
+		
+	return z;
+}
+
+/*
  *	Timer
  */
 void Timer(int value)
@@ -911,28 +979,29 @@ void Timer(int value)
 	int anda = 0;
 	
 	// Movimento
+	GLfloat novoObsP[] = {obsP[0], obsP[1], obsP[2]};
 	if (frente)
 	{
-		obsP[2] -= vel * cos(anguloH) * factorResize;
-		obsP[0] += vel * sin(anguloH) * factorResize;
+		novoObsP[2] -= vel * cos(anguloH) * factorResize;
+		novoObsP[0] += vel * sin(anguloH) * factorResize;
 		anda = 1;
 	}
 	if (atras)
 	{
-		obsP[2] += vel * cos(anguloH) * factorResize;
-		obsP[0] -= vel * sin(anguloH) * factorResize;
+		novoObsP[2] += vel * cos(anguloH) * factorResize;
+		novoObsP[0] -= vel * sin(anguloH) * factorResize;
 		anda = 1;
 	}
 	if (esquerda)
 	{
-		obsP[2] += vel * cos(anguloH + 3.14/2) * factorResize;
-		obsP[0] -= vel * sin(anguloH + 3.14/2) * factorResize;
+		novoObsP[2] += vel * cos(anguloH + 3.14/2) * factorResize;
+		novoObsP[0] -= vel * sin(anguloH + 3.14/2) * factorResize;
 		anda = 1;
 	}
 	if (direita)
 	{
-		obsP[2] -= vel * cos(anguloH + 3.14/2) * factorResize;
-		obsP[0] += vel * sin(anguloH + 3.14/2) * factorResize;
+		novoObsP[2] -= vel * cos(anguloH + 3.14/2) * factorResize;
+		novoObsP[0] += vel * sin(anguloH + 3.14/2) * factorResize;
 		anda = 1;
 	}
 	if (anda > 0)
@@ -941,6 +1010,8 @@ void Timer(int value)
 		if (passo > 3.14)
 			passo -= 3.14;
 	}
+	obsP[0] = colisoesX(novoObsP[0], novoObsP[2]);
+	obsP[2] = colisoesZ(novoObsP[0], novoObsP[2]);
 	
 	// Rato
 	glutWarpPointer(wScreen/2, hScreen/2);
