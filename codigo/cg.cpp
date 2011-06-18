@@ -971,10 +971,10 @@ GLfloat colisoesZ(GLfloat x, GLfloat z)
 	
 	// Sala 3
 	// Parede de blocos de vidro
-	if (x > sala3[2]-2.1-0.15 && x < sala3[2]-1.1+0.15 && z < sala3[3]+2.1+0.15 && obsP[2] > z)
+	if (x > sala3[2]-2.1-0.15 && x < sala3[2]-1.1+0.15 && z < sala3[3]+2.1+0.15 && z > sala3[3]+1.8 && obsP[2] > z)
 		if (sala3[2]-x <= -(sala3[3]-z))
 			return obsP[2];
-	if (x > sala3[2]-2.1 && x < sala3[2]-1.1+0.15 && z > sala3[3]+1.8-0.15 && obsP[2] < z)
+	if (x > sala3[2]-2.1 && x < sala3[2]-1.1+0.15 && z > sala3[3]+1.8-0.15 && z < sala3[3]+2.1 && obsP[2] < z)
 		return obsP[2];
 		
 	return z;
