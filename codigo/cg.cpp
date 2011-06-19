@@ -307,25 +307,33 @@ void criaParedeDefinida(float x0, float y0, float z0, float x1, float y1, float 
 	GLfloat step = 1;
 	if (x0 == x1) // Virada para Este
 	{
-		if (z0 < z1)
+		if (z0 < z1){
+		    glNormal3f(-1,0,0);
 			for (GLfloat z = z0; z < z1; z += step)
 				for (GLfloat y = y0; y < y1; y += step)
 					criaParede(x0, y, z, x0, min(y+step, y1), min(z+step, z1));
-		else
+		}
+		else{
+			glNormal3f(1,0,0);
 			for (GLfloat z = z0; z > z1; z -= step)
 				for (GLfloat y = y0; y < y1; y += step)
 					criaParede(x0, y, z, x0, min(y+step, y1), max(z-step, z1));
+		}
 	}
 	else // Virada para Norte
 	{
-		if (x0 < x1)
+		if (x0 < x1){
+		    glNormal3f(0,0,1);
 			for (GLfloat x = x0; x < x1; x += step)
 				for (GLfloat y = y0; y < y1; y += step)
 					criaParede(x, y, z0, min(x+step, x1), min(y+step, y1), z0);
-		else
+		}
+		else{
+		    glNormal3f(0,0,-1);
 			for (GLfloat x = x0; x > x1; x -= step)
 				for (GLfloat y = y0; y < y1; y += step)
 					criaParede(x, y, z0, max(x-step, x1), min(y+step, y1), z0);
+		}
 	}
 }
 
@@ -361,25 +369,34 @@ void criaHorizontalDefinida(float x0, float y0, float z0, float x1, float y1, fl
 	GLfloat step = 1;
 	if (x0 < x1)
 	{
-		if (z0 < z1)
+		if (z0 < z1){
+	        glNormal3f(0,1,0);	
 			for (GLfloat z = z0; z < z1; z += step)
 				for (GLfloat x = x0; x < x1; x += step)
 					criaHorizontal(x, y0, z, min(x+step, x1), y0, min(z+step, z1));
+		}
 		else
+		{
+		    glNormal3f(0,-1,0);	
 			for (GLfloat z = z0; z > z1; z -= step)
 				for (GLfloat x = x0; x < x1; x += step)
 					criaHorizontal(x, y0, z, min(x+step, x1), y0, max(z-step, z1));
+		}
 	}
 	else
 	{
-		if (z0 < z1)
+		if (z0 < z1){
+		    glNormal3f(0,-1,0);	
 			for (GLfloat z = z0; z < z1; z += step)
 				for (GLfloat x = x0; x > x1; x -= step)
 					criaHorizontal(x, y0, z, max(x-step, x1), y0, min(z+step, z1));
-		else
+		}
+		else{
+		    glNormal3f(0,1,0);	
 			for (GLfloat z = z0; z > z1; z -= step)
 				for (GLfloat x = x0; x > x1; x -= step)
 					criaHorizontal(x, y0, z, max(x-step, x1), y0, max(z-step, z1));
+		}
 	}
 }
 
@@ -708,9 +725,10 @@ void iluminacao(GLfloat lookLant[])
 void cenario(int view)
 {
 	// Alvos
+	
 	for (int i=0; i<numAlvos; i++)
 		criaAlvo(alvos[i]);
-	
+	apagaLuzes();
 	// Sala 1
 	iluminaSala(1, view);
 	glPushMatrix();
@@ -735,7 +753,16 @@ void cenario(int view)
 	criaCaixa(0.55, 0.2, 1.7, 10);
 	criaCaixa(0.7, 0.6, 1.5, 55);
 	glColor4f(1.0, 1.0, 1.0, 1.0);
+	glColor4f(1,1,0.6,1);
+	criaHorizontal(sala1[0]+2.1, alturaSala12-0.05, sala1[1]-0.35, sala1[0]+2.5, alturaSala12-0.05, sala1[1]-0.7);
+	glColor4f(1,1,1,1);
+	apagaLuzes();
 	
+	//Luz sala 2
+	iluminaSala(2, view);
+	glColor4f(1,1,0.6,1);
+	criaHorizontalDefinida(sala2[0]+1, alturaSala12-0.05, sala2[1]-1.35, sala2[0]+1.3, alturaSala12-0.05, sala2[1]-1.7);
+	glColor4f(1,1,1,1);
 	apagaLuzes();
 	
 	// Sala 2
@@ -765,6 +792,7 @@ void cenario(int view)
 		glEnable(GL_COLOR_MATERIAL);
 	glPopMatrix();
 	
+	
 	apagaLuzes();
 	
 	// Sala 3
@@ -780,9 +808,9 @@ void cenario(int view)
 	
 	glDisable(GL_TEXTURE_2D);
 	glColor4f(1,1,0.6,1);
-	criaHorizontal(sala3[0]+2.5, alturaEdificio+1.5-0.05, sala3[1]-2.5, sala3[0]+3, alturaEdificio+1.5-0.05, sala3[1]-4);
+	criaHorizontalDefinida(sala3[0]+2.5, alturaEdificio+1.5-0.05, sala3[1]-2.5, sala3[0]+3, alturaEdificio+1.5-0.05, sala3[1]-4);
 	glColor4f(0.3,0.3,0.3,1);
-	criaHorizontal(sala3[0]+5.5, alturaEdificio+1.5-0.05, sala3[1]-2.5, sala3[0]+6, alturaEdificio+1.5-0.05, sala3[1]-4);
+	criaHorizontalDefinida(sala3[0]+5.5, alturaEdificio+1.5-0.05, sala3[1]-2.5, sala3[0]+6, alturaEdificio+1.5-0.05, sala3[1]-4);
 	glEnable(GL_TEXTURE_2D);
 	
 	apagaLuzes();
