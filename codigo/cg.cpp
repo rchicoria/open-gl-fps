@@ -101,6 +101,10 @@ GLfloat goldAmbient[] = {0.24725, 0.1995, 0.0745};
 GLfloat goldDiffuse[] = {0.75164, 0.60648, 0.22648};
 GLfloat goldSpecular[] = {0.628281, 0.555802, 0.366065};
 GLfloat goldShininess = 128 * 0.4;
+GLfloat rubyAmbient[] = {0.1745, 0.01175, 0.01175};
+GLfloat rubyDiffuse[] = {0.61424, 0.04136, 0.04136};
+GLfloat rubySpecular[] = {0.727811, 0.626959, 0.626959};
+GLfloat rubyShininess = 128 * 0.6;
 
 void iluminacao();
 
@@ -648,6 +652,26 @@ void cenario(int view)
 	
 	criaCaixa(-1.2, 0.2, -3.95, 5);
 	criaCaixa(-1.7, 0.2, -3.95, -10);
+	glPushMatrix();
+		glDisable(GL_COLOR_MATERIAL);
+		glMaterialfv(GL_FRONT,GL_AMBIENT, goldAmbient);
+        glMaterialf(GL_FRONT,GL_SHININESS, goldShininess);
+        glMaterialfv(GL_FRONT,GL_SPECULAR, goldSpecular);
+        glMaterialfv(GL_FRONT,GL_DIFFUSE, goldDiffuse);
+		glTranslatef(-1.3, 0.45, -3.9);
+		glutSolidSphere(0.05, 100, 100);
+		glEnable(GL_COLOR_MATERIAL);
+	glPopMatrix();
+	glPushMatrix();
+		glDisable(GL_COLOR_MATERIAL);
+		glMaterialfv(GL_FRONT,GL_AMBIENT, rubyAmbient);
+        glMaterialf(GL_FRONT,GL_SHININESS, rubyShininess);
+        glMaterialfv(GL_FRONT,GL_SPECULAR, rubySpecular);
+        glMaterialfv(GL_FRONT,GL_DIFFUSE, rubyDiffuse);
+		glTranslatef(-1.2, 0.425, -3.98);
+		glutSolidSphere(0.025, 100, 100);
+		glEnable(GL_COLOR_MATERIAL);
+	glPopMatrix();
 	
 	apagaLuzes();
 	
