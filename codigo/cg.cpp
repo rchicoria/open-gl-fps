@@ -707,6 +707,7 @@ void iluminacao(GLfloat lookLant[])
     glLightf (GL_LIGHT2, GL_QUADRATIC_ATTENUATION, localAttQua);
     
     glLightfv(GL_LIGHT3, GL_DIFFUSE, localDif );
+    glLightfv(GL_LIGHT3, GL_SPECULAR, localSpec );
     glLightf (GL_LIGHT3, GL_SPOT_EXPONENT , concentracao);
     glLightf (GL_LIGHT3, GL_SPOT_CUTOFF, ang);
     
@@ -751,7 +752,10 @@ void cenario(GLint view)
 	
 	//Luz sala 2
 	iluminaSala(2, view);
-	glColor4f(1,1,0.6,1);
+	if(fundidas[1])
+	    glColor4f(1,1,0.6,1);
+	else
+	    glColor4f(0.3,0.3,0.3,1);
 	criaHorizontalDefinida(sala2[0]+1, alturaSala12-0.05, sala2[1]-1.35, sala2[0]+1.3, alturaSala12-0.05, sala2[1]-1.7);
 	glColor4f(1,1,1,1);
 	apagaLuzes();
@@ -801,7 +805,10 @@ void cenario(GLint view)
 	criaCaixa(1.5, alturaSala12+0.3, -0.5, 40);
 	
 	glDisable(GL_TEXTURE_2D);
-	glColor4f(1,1,0.6,1);
+	if(fundidas[2])
+	    glColor4f(1,1,0.6,1);
+	else
+	    glColor4f(0.3,0.3,0.3,1);
 	criaHorizontalDefinida(sala3[0]+2.5, alturaEdificio+1.5-0.05, sala3[1]-2.5, sala3[0]+3, alturaEdificio+1.5-0.05, sala3[1]-4);
 	glColor4f(0.3,0.3,0.3,1);
 	criaHorizontalDefinida(sala3[0]+5.5, alturaEdificio+1.5-0.05, sala3[1]-2.5, sala3[0]+6, alturaEdificio+1.5-0.05, sala3[1]-4);
