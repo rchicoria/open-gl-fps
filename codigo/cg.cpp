@@ -86,13 +86,13 @@ GLuint fogfilter = 2;
 GLfloat fogColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
 // Furos dos tiros
-int furosMax = 10;
+GLint furosMax = 10;
 GLfloat furos[10][5];
 GLint furosPos = 0;
 GLint furosTam = 0;
 
 // Alvos
-int numAlvos = 4;
+GLint numAlvos = 4;
 GLfloat alvos[4][6] = { // {x, y, z, angulo, estado (0 ok 90 ko), sala}
 	{-0.9, 0, -4.5, 90, 0, 2},
 	{2, alturaSala12+0.01, 0.5, 90, 0, 3},
@@ -118,7 +118,7 @@ void iluminacao(GLfloat lookLant[]);
 /*
  *	Cria uma nova textura e guarda-a no array de texturas
  */
-void criaTextura(int index, const char* url)
+void criaTextura(GLint index, const char* url)
 {
 	glGenTextures(1, &texture[index]);
 	glBindTexture(GL_TEXTURE_2D, texture[index]);
@@ -187,20 +187,20 @@ void init(void)
  */
 void resizeWindow(GLsizei w, GLsizei h)
 {
-	float ratio = (float)wScreen/(float)hScreen;
-	if ((float)w/(float)h > ratio)
+	GLfloat ratio = (GLfloat)wScreen/(GLfloat)hScreen;
+	if ((GLfloat)w/(GLfloat)h > ratio)
 	{
-		wScreen = wScreen * (float)h/(float)hScreen;
+		wScreen = wScreen * (GLfloat)h/(GLfloat)hScreen;
 		hScreen = h;
 		wExtra = w - wScreen;
-		factorResize = (float)h/600.0;
+		factorResize = (GLfloat)h/600.0;
 	}
 	else
 	{
-		hScreen = hScreen * (float)w/(float)wScreen;
+		hScreen = hScreen * (GLfloat)w/(GLfloat)wScreen;
 		wScreen = w;
 		hExtra = h - hScreen;
-		factorResize = (float)w/800.0;
+		factorResize = (GLfloat)w/800.0;
 	}
 	glutPostRedisplay();
 }
@@ -208,13 +208,16 @@ void resizeWindow(GLsizei w, GLsizei h)
 /*
  *	Calcula o valor absoluto de um número
  */
-float mod(float n)
+GLfloat mod(GLfloat n)
 {
 	if (n == 0)
 		return 0.0;
 	return sqrt(n*n);
 }
 
+/*
+ *	Calcula o mínimo entre dois valores
+ */
 GLfloat min(GLfloat a, GLfloat b)
 {
 	if (a < b)
@@ -222,6 +225,9 @@ GLfloat min(GLfloat a, GLfloat b)
 	return b;
 }
 
+/*
+ *	Calcula o máximo entre dois valores
+ */
 GLfloat max(GLfloat a, GLfloat b)
 {
 	if (a > b)
@@ -232,7 +238,7 @@ GLfloat max(GLfloat a, GLfloat b)
 /*
  *	Liga ou desliga a luz da sala pretendida
  */
-void iluminaSala(int sala, int view=PERSPECTIVE)
+void iluminaSala(GLint sala, GLint view=PERSPECTIVE)
 {
 	GLint light;
 	switch (sala)
@@ -266,7 +272,7 @@ void apagaLuzes()
 /*
  *	Cria uma parede com textura com base no ponto do canto inf. esq. e canto sup. dir.
  */
-void criaParede(float x0, float y0, float z0, float x1, float y1, float z1)
+void criaParede(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat x1, GLfloat y1, GLfloat z1)
 {
 	glPushMatrix();
 		glBegin(GL_QUADS);
@@ -278,7 +284,7 @@ void criaParede(float x0, float y0, float z0, float x1, float y1, float z1)
 	glPopMatrix();
 }
 
-void criaParedeN(float x0, float y0, float z0, float x1, float y1, float z1, int n)
+void criaParedeN(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat x1, GLfloat y1, GLfloat z1, GLint n)
 {
 	glPushMatrix();
 		glBegin(GL_QUADS);
@@ -290,7 +296,7 @@ void criaParedeN(float x0, float y0, float z0, float x1, float y1, float z1, int
 	glPopMatrix();
 }
 
-void criaParedeTexturaUnica(float x0, float y0, float z0, float x1, float y1, float z1)
+void criaParedeTexturaUnica(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat x1, GLfloat y1, GLfloat z1)
 {
 	glPushMatrix();
 		glBegin(GL_QUADS);
@@ -302,7 +308,7 @@ void criaParedeTexturaUnica(float x0, float y0, float z0, float x1, float y1, fl
 	glPopMatrix();
 }
 
-void criaParedeDefinida(float x0, float y0, float z0, float x1, float y1, float z1)
+void criaParedeDefinida(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat x1, GLfloat y1, GLfloat z1)
 {
 	GLfloat step = 0.5;
 	if (x0 == x1) // Virada para Este
@@ -332,7 +338,7 @@ void criaParedeDefinida(float x0, float y0, float z0, float x1, float y1, float 
 /*
  *	Cria um tecto com textura com base no ponto do canto inf. esq. e canto sup. dir.
  */
-void criaHorizontal(float x0, float y0, float z0, float x1, float y1, float z1)
+void criaHorizontal(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat x1, GLfloat y1, GLfloat z1)
 {
 	glPushMatrix();
 		glBegin(GL_QUADS);
@@ -344,7 +350,7 @@ void criaHorizontal(float x0, float y0, float z0, float x1, float y1, float z1)
 	glPopMatrix();
 }
 
-void criaHorizontalTexturaUnica(float x0, float y0, float z0, float x1, float y1, float z1)
+void criaHorizontalTexturaUnica(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat x1, GLfloat y1, GLfloat z1)
 {
 	glPushMatrix();
 		glBegin(GL_QUADS);
@@ -356,7 +362,7 @@ void criaHorizontalTexturaUnica(float x0, float y0, float z0, float x1, float y1
 	glPopMatrix();
 }
 
-void criaHorizontalDefinida(float x0, float y0, float z0, float x1, float y1, float z1)
+void criaHorizontalDefinida(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat x1, GLfloat y1, GLfloat z1)
 {
 	GLfloat step = 1;
 	if (x0 < x1)
@@ -411,7 +417,7 @@ void criaArma()
 /*
  *	Cria uma caixa de madeira
  */
-void criaCaixa(float x, float y, float z, float angulo)
+void criaCaixa(GLfloat x, GLfloat y, GLfloat z, GLfloat angulo)
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,texture[7]);
@@ -620,7 +626,7 @@ void edificio()
 	apagaLuzes();
 	glDisable(GL_LIGHT3);
 	
-	for (int i=0; i<furosTam; i++)
+	for (GLint i=0; i<furosTam; i++)
 	{
 		furoTiro(furos[i][0], furos[i][1], furos[i][2], furos[i][3], furos[i][4]);
 	}
@@ -705,10 +711,10 @@ void iluminacao(GLfloat lookLant[])
 /*
  *	Preenche o cenário com os vários objectos
  */
-void cenario(int view)
+void cenario(GLint view)
 {
 	// Alvos
-	for (int i=0; i<numAlvos; i++)
+	for (GLint i=0; i<numAlvos; i++)
 		criaAlvo(alvos[i]);
 	
 	// Sala 1
@@ -853,7 +859,7 @@ void display(void)
 /*
  *	Controlo para as teclas com letras quando são premidas
  */
-void keyPress(unsigned char key, int x, int y)
+void keyPress(unsigned char key, GLint x, GLint y)
 {
 	switch (key)
 	{
@@ -883,16 +889,6 @@ void keyPress(unsigned char key, int x, int y)
 			lampadas[key-'1'] = !lampadas[key-'1'];
 			break;
 		
-		case 'U':
-		case 'u':
-		    obsP[1]++;
-		    break;
-		
-		case 'j':
-		case 'J':
-		    obsP[1]--;
-		    break;
-		
 		case 'c':
 		case 'C':
 			obsP[1] -= 0.3;
@@ -914,31 +910,22 @@ void keyPress(unsigned char key, int x, int y)
 			}
 			break;
 		
-		case 'V':
-		case 'v':
-		    // Vidro
-	        if(text_vidro)
-		        text_vidro=false;
-		    else 
-	            text_vidro=true;    
-		    break;
-		
-		case 27: // Esq
-			exit(0);
-			break;
-		
 		case 'l':
         case 'L':
             ctrlLant+=1;
             ctrlLant%=2;
             break;
+		
+		case 27: // Esq
+			exit(0);
+			break;
 	}
 }
 
 /*
  *	Controlo para as teclas com letras quando são largadas
  */
-void keyUp(unsigned char key, int x, int y)
+void keyUp(unsigned char key, GLint x, GLint y)
 {
 	switch (key)
 	{
@@ -972,7 +959,7 @@ void keyUp(unsigned char key, int x, int y)
 /*
  *	Timer para a animação do alvo a ser derrubado
  */
-void derrubaAlvo(int value)
+void derrubaAlvo(GLint value)
 {
 	alvos[value][4] += 5;
 	if (alvos[value][4] < 90)
@@ -984,7 +971,7 @@ void derrubaAlvo(int value)
  */
 bool acertaAlvo(GLfloat* bala)
 {
-	for (int i=0; i<numAlvos; i++)
+	for (GLint i=0; i<numAlvos; i++)
 	{
 		if (alvos[i][4] == 0) // Se está OK
 		{
@@ -1145,11 +1132,11 @@ void tiro(GLfloat x, GLfloat y, GLfloat z)
 		// Ainda não acertou em nada
 		else
 		{
-			for (int i=0; i<3; i++)
+			for (GLint i=0; i<3; i++)
 				bala[i] += mov[i];
 			continue;
 		}
-		for (int i=0; i<3; i++)
+		for (GLint i=0; i<3; i++)
 			furos[furosPos][i] = bala[i];
 		furos[furosPos][3] = ang;
 		furos[furosPos][4] = ang2;
@@ -1163,7 +1150,7 @@ void tiro(GLfloat x, GLfloat y, GLfloat z)
 /*
  *	Controlo dos cliques de rato, para disparar
  */
-void mouseClick(int button, int state, int x, int y)
+void mouseClick(GLint button, GLint state, GLint x, GLint y)
 {
 	if ((button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN))
 	{
@@ -1175,12 +1162,12 @@ void mouseClick(int button, int state, int x, int y)
 /*
  *	Controlo da câmara com o rato
  */
-void mouseMovement(int x, int y) {
-	float limite = 3.14/2;
-	int diffx = x - wScreen/2;
-	int diffy = y - hScreen/2;
-	anguloV -= (float) diffy * velCamara;
-	anguloH += (float) diffx * velCamara;
+void mouseMovement(GLint x, GLint y) {
+	GLfloat limite = 3.14/2;
+	GLint diffx = x - wScreen/2;
+	GLint diffy = y - hScreen/2;
+	anguloV -= (GLfloat) diffy * velCamara;
+	anguloH += (GLfloat) diffx * velCamara;
 	if (anguloV > limite)
 		anguloV = limite;
 	if (anguloV < -limite)
@@ -1282,9 +1269,9 @@ GLfloat colisoesZ(GLfloat x, GLfloat z)
 /*
  *	Timer
  */
-void Timer(int value)
+void Timer(GLint value)
 {
-	int anda = 0;
+	GLint anda = 0;
 	
 	// Movimento
 	GLfloat novoObsP[] = {obsP[0], obsP[1], obsP[2]};
