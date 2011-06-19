@@ -903,6 +903,11 @@ void keyPress(unsigned char key, int x, int y)
 		case 'J':
 		    obsP[1]--;
 		    break;
+		
+		case 'c':
+		case 'C':
+			obsP[1] -= 0.3;
+			break;
 			
 		case 'f':
 		case 'F':
@@ -966,6 +971,11 @@ void keyUp(unsigned char key, int x, int y)
 		case 's':
 		case 'S':
 			atras = false;
+			break;
+		
+		case 'c':
+		case 'C':
+			obsP[1] += 0.3;
 			break;
 	}
 }
