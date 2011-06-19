@@ -753,7 +753,7 @@ void cenario(GLint view)
 	
 	//Luz sala 2
 	iluminaSala(2, view);
-	if(fundidas[1])
+	if(!fundidas[1])
 	    glColor4f(1,1,0.6,1);
 	else
 	    glColor4f(0.3,0.3,0.3,1);
@@ -806,7 +806,7 @@ void cenario(GLint view)
 	criaCaixa(1.5, alturaSala12+0.3, -0.5, 40);
 	
 	glDisable(GL_TEXTURE_2D);
-	if(fundidas[2])
+	if(!fundidas[2])
 	    glColor4f(1,1,0.6,1);
 	else
 	    glColor4f(0.3,0.3,0.3,1);
