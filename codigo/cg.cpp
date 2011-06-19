@@ -542,8 +542,8 @@ void edificio()
     criaParedeDefinida(sala12[0]+0.05, 0, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
     glDisable(GL_TEXTURE_2D);
     glColor4f(0,0,0,1);
-    criaParedeDefinida(sala12[0]+0.055, 0.05, sala12[1], sala12[0]+0.05, 1.25, sala12[1]-0.005);
-    criaParedeDefinida(sala12[2]-0.05, 0.05, sala12[1]-0.005, sala12[2]-0.055, 1.25, sala12[1]);
+    criaParedeDefinida(sala12[0]+0.05, 0.05, sala12[1], sala12[0]+0.05, 1.25-0.055, sala12[1]-0.005);
+    criaParedeDefinida(sala12[2]-0.05, 0.05, sala12[1]-0.005, sala12[2]-0.055, 1.25-0.05, sala12[1]);
     criaHorizontalDefinida(sala12[0], 1.2, sala12[1], sala12[2], 1.2, sala12[1]-0.005);
     criaHorizontalDefinida(sala12[2], 0.05, sala12[1], sala12[0], 0.05, sala12[1]-0.005);
     glColor4f(1,1,1,1);
