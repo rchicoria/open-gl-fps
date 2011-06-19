@@ -208,6 +208,20 @@ float mod(float n)
 	return sqrt(n*n);
 }
 
+GLfloat min(GLfloat a, GLfloat b)
+{
+	if (a < b)
+		return a;
+	return b;
+}
+
+GLfloat max(GLfloat a, GLfloat b)
+{
+	if (a > b)
+		return a;
+	return b;
+}
+
 /*
  *	Liga ou desliga a luz da sala pretendida
  */
@@ -281,6 +295,33 @@ void criaParedeTexturaUnica(float x0, float y0, float z0, float x1, float y1, fl
 	glPopMatrix();
 }
 
+void criaParedeDefinida(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	GLfloat step = 1;
+	if (x0 == x1) // Virada para Este
+	{
+		if (z0 < z1)
+			for (GLfloat z = z0; z < z1; z += step)
+				for (GLfloat y = y0; y < y1; y += step)
+					criaParede(x0, y, z, x0, min(y+step, y1), min(z+step, z1));
+		else
+			for (GLfloat z = z0; z > z1; z -= step)
+				for (GLfloat y = y0; y < y1; y += step)
+					criaParede(x0, y, z, x0, min(y+step, y1), max(z-step, z1));
+	}
+	else // Virada para Norte
+	{
+		if (x0 < x1)
+			for (GLfloat x = x0; x < x1; x += step)
+				for (GLfloat y = y0; y < y1; y += step)
+					criaParede(x, y, z0, min(x+step, x1), min(y+step, y1), z0);
+		else
+			for (GLfloat x = x0; x > x1; x -= step)
+				for (GLfloat y = y0; y < y1; y += step)
+					criaParede(x, y, z0, max(x-step, x1), min(y+step, y1), z0);
+	}
+}
+
 /*
  *	Cria um tecto com textura com base no ponto do canto inf. esq. e canto sup. dir.
  */
@@ -306,6 +347,33 @@ void criaHorizontalTexturaUnica(float x0, float y0, float z0, float x1, float y1
 			glTexCoord2f(1.0f,0.0f); glVertex3f( x1, y1, z0);
 		glEnd();
 	glPopMatrix();
+}
+
+void criaHorizontalDefinida(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	GLfloat step = 1;
+	if (x0 < x1)
+	{
+		if (z0 < z1)
+			for (GLfloat z = z0; z < z1; z += step)
+				for (GLfloat x = x0; x < x1; x += step)
+					criaHorizontal(x, y0, z, min(x+step, x1), y0, min(z+step, z1));
+		else
+			for (GLfloat z = z0; z > z1; z -= step)
+				for (GLfloat x = x0; x < x1; x += step)
+					criaHorizontal(x, y0, z, min(x+step, x1), y0, max(z-step, z1));
+	}
+	else
+	{
+		if (z0 < z1)
+			for (GLfloat z = z0; z < z1; z += step)
+				for (GLfloat x = x0; x > x1; x -= step)
+					criaHorizontal(x, y0, z, max(x-step, x1), y0, min(z+step, z1));
+		else
+			for (GLfloat z = z0; z > z1; z -= step)
+				for (GLfloat x = x0; x > x1; x -= step)
+					criaHorizontal(x, y0, z, max(x-step, x1), y0, max(z-step, z1));
+	}
 }
 
 /*
@@ -406,25 +474,25 @@ void edificio()
 	// Sala 1
 	iluminaSala(1);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	criaParede(sala1[0], 0, sala1[3], sala12[0], 1.25, sala1[3]);
-	criaParede(sala12[2], 0, sala1[3], sala1[2], 1.25, sala1[3]);
-	criaParede(sala1[0], 1.25, sala1[3], sala1[2], alturaSala12, sala1[3]);
-	criaParede(sala3[0], 0, sala1[1], sala1[0], alturaSala12, sala1[1]);
-	criaParede(sala1[0], 0, sala1[1], sala1[0], alturaSala12, sala1[3]);
-	criaParede(sala1[2], 0, sala1[3], sala1[2], alturaSala12, sala1[1]);
+	criaParedeDefinida(sala1[0], 0, sala1[3], sala12[0], 1.25, sala1[3]);
+	criaParedeDefinida(sala12[2], 0, sala1[3], sala1[2], 1.25, sala1[3]);
+	criaParedeDefinida(sala1[0], 1.25, sala1[3], sala1[2], alturaSala12, sala1[3]);
+	criaParedeDefinida(sala3[0], 0, sala1[1], sala1[0], alturaSala12, sala1[1]);
+	criaParedeDefinida(sala1[0], 0, sala1[1], sala1[0], alturaSala12, sala1[3]);
+	criaParedeDefinida(sala1[2], 0, sala1[3], sala1[2], alturaSala12, sala1[1]);
 	glBindTexture(GL_TEXTURE_2D,texture[11]);
-	criaHorizontal(sala1[0], alturaSala12, sala1[1], sala1[2], alturaSala12, sala1[3]);
+	criaHorizontalDefinida(sala1[0], alturaSala12, sala1[1], sala1[2], alturaSala12, sala1[3]);
     glBindTexture(GL_TEXTURE_2D,texture[4]);
-    criaHorizontal(sala1[2], 0, sala1[1], sala1[0], 0, sala1[3]);
+    criaHorizontalDefinida(sala1[2], 0, sala1[1], sala1[0], 0, sala1[3]);
 	apagaLuzes();
 	
 	// Sala 1 <-> Sala 2
 	iluminaSala(1);
 	iluminaSala(2);
 	glBindTexture(GL_TEXTURE_2D,texture[3]);
-	criaParede(sala12[0], 0, sala12[1], sala12[0], 1.25, sala12[3]);
-	criaParede(sala12[2], 0, sala12[3], sala12[2], 1.25, sala12[1]);
-	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
+	criaParedeDefinida(sala12[0], 0, sala12[1], sala12[0], 1.25, sala12[3]);
+	criaParedeDefinida(sala12[2], 0, sala12[3], sala12[2], 1.25, sala12[1]);
+	criaHorizontalDefinida(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
 	// Vidro
 	if(text_vidro)
 	    glBindTexture(GL_TEXTURE_2D,texture[5]);
@@ -437,95 +505,95 @@ void edificio()
 	// Aluminio
 	glBindTexture(GL_TEXTURE_2D,texture[6]);
 	glDisable(GL_BLEND);
-    criaParede(sala12[2], 1.2, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
-    criaParede(sala12[2], 0, sala12[1]-0.005, sala12[0], 0.05, sala12[1]-0.005);
-    criaParede(sala12[2], 0, sala12[1]-0.005, sala12[2]-0.05, 1.25, sala12[1]-0.005);
-    criaParede(sala12[0]+0.05, 0, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
+    criaParedeDefinida(sala12[2], 1.2, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
+    criaParedeDefinida(sala12[2], 0, sala12[1]-0.005, sala12[0], 0.05, sala12[1]-0.005);
+    criaParedeDefinida(sala12[2], 0, sala12[1]-0.005, sala12[2]-0.05, 1.25, sala12[1]-0.005);
+    criaParedeDefinida(sala12[0]+0.05, 0, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
     glDisable(GL_TEXTURE_2D);
     glColor4f(0,0,0,1);
-    criaParede(sala12[0]+0.055, 0.05, sala12[1], sala12[0]+0.05, 1.25, sala12[1]-0.005);
-    criaParede(sala12[2]-0.05, 0.05, sala12[1]-0.005, sala12[2]-0.055, 1.25, sala12[1]);
-    criaHorizontal(sala12[0], 1.2, sala12[1], sala12[2], 1.2, sala12[1]-0.005);
-    criaHorizontal(sala12[2], 0.05, sala12[1], sala12[0], 0.05, sala12[1]-0.005);
+    criaParedeDefinida(sala12[0]+0.055, 0.05, sala12[1], sala12[0]+0.05, 1.25, sala12[1]-0.005);
+    criaParedeDefinida(sala12[2]-0.05, 0.05, sala12[1]-0.005, sala12[2]-0.055, 1.25, sala12[1]);
+    criaHorizontalDefinida(sala12[0], 1.2, sala12[1], sala12[2], 1.2, sala12[1]-0.005);
+    criaHorizontalDefinida(sala12[2], 0.05, sala12[1], sala12[0], 0.05, sala12[1]-0.005);
     glColor4f(1,1,1,1);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D,texture[4]);
-    criaHorizontal(sala1[2], 0, sala2[1]+0.1, sala1[0], 0, sala2[1]);
+    criaHorizontalDefinida(sala1[2], 0, sala2[1]+0.1, sala1[0], 0, sala2[1]);
 	apagaLuzes();
 	
 	// Sala 2
 	iluminaSala(2);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	criaParede(sala12[0], 0, sala2[1], sala2[0], 1.25, sala2[1]);
-	criaParede(sala2[2], 0, sala2[1], sala12[2], 1.25, sala2[1]);
-	criaParede(sala2[2], 1.25, sala2[1], sala2[0], alturaSala12, sala2[1]);
-	criaParede(sala2[0], 0, sala2[1], sala2[0], alturaSala12, sala2[3]);
-	criaParede(sala2[2], 1.25, sala2[3], sala2[2], alturaSala12, sala2[1]);
-	criaParede(sala2[2], 0, sala23[1], sala2[2], 1.25, sala2[1]);
-	criaParede(sala2[2], 0, sala2[3], sala2[2], 1.25, sala23[3]);
+	criaParedeDefinida(sala12[0], 0, sala2[1], sala2[0], 1.25, sala2[1]);
+	criaParedeDefinida(sala2[2], 0, sala2[1], sala12[2], 1.25, sala2[1]);
+	criaParedeDefinida(sala2[2], 1.25, sala2[1], sala2[0], alturaSala12, sala2[1]);
+	criaParedeDefinida(sala2[0], 0, sala2[1], sala2[0], alturaSala12, sala2[3]);
+	criaParedeDefinida(sala2[2], 1.25, sala2[3], sala2[2], alturaSala12, sala2[1]);
+	criaParedeDefinida(sala2[2], 0, sala23[1], sala2[2], 1.25, sala2[1]);
+	criaParedeDefinida(sala2[2], 0, sala2[3], sala2[2], 1.25, sala23[3]);
 	glBindTexture(GL_TEXTURE_2D,texture[11]);
-	criaHorizontal(sala2[0], alturaSala12, sala2[1], sala2[0]+2, alturaSala12, sala2[3]);
+	criaHorizontalDefinida(sala2[0], alturaSala12, sala2[1], sala2[0]+2, alturaSala12, sala2[3]);
 	apagaLuzes();
 	
 	// Sala 2 <-> Sala 3
 	iluminaSala(2);
 	iluminaSala(3);
 	glBindTexture(GL_TEXTURE_2D,texture[3]);
-	criaParede(sala23[2], 0, sala23[1], sala23[0], 1.25, sala23[1]);
-	criaParede(sala23[0], 0, sala23[3], sala23[2], 1.25, sala23[3]);
-	criaHorizontal(sala23[0], 1.25, sala23[1], sala23[2], 1.25, sala23[3]);
+	criaParedeDefinida(sala23[2], 0, sala23[1], sala23[0], 1.25, sala23[1]);
+	criaParedeDefinida(sala23[0], 0, sala23[3], sala23[2], 1.25, sala23[3]);
+	criaHorizontalDefinida(sala23[0], 1.25, sala23[1], sala23[2], 1.25, sala23[3]);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	criaParede(sala1[0]+2, alturaSala12, sala2[1], sala1[0]+2, alturaEdificio+1.5, sala2[3]);
-	criaParede(sala2[0], 0, sala2[3], sala3[0], alturaEdificio+1.5, sala2[3]);
+	criaParedeDefinida(sala1[0]+2, alturaSala12, sala2[1], sala1[0]+2, alturaEdificio+1.5, sala2[3]);
+	criaParedeDefinida(sala2[0], 0, sala2[3], sala3[0], alturaEdificio+1.5, sala2[3]);
 	glBindTexture(GL_TEXTURE_2D,texture[4]);
-	criaHorizontal(sala3[0], 0, sala2[0]-0.1, sala2[0], 0, sala3[3]);
+	criaHorizontalDefinida(sala3[0], 0, sala2[0]-0.1, sala2[0], 0, sala3[3]);
 	apagaLuzes();
 	
 	// Sala 3
 	iluminaSala(3);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	criaParede(sala3[0], 1.25, sala3[1], sala3[0], alturaSala12, sala3[3]);
-	criaParede(sala3[2], alturaSala12, sala1[1], sala1[0], alturaEdificio+1.5, sala1[1]);
-	criaParede(sala3[0], 0, sala3[1], sala3[0], 1.25, sala23[1]);
-	criaParede(sala3[0], 0, sala23[3], sala3[0], 1.25, sala3[3]);
-	criaParede(sala1[0]+2, alturaSala12, sala1[1], sala1[0]+2, alturaEdificio+1.5, sala2[1]);
-	criaParede(sala3[2], 0, sala3[1], sala3[0], alturaSala12, sala3[1]);
-	criaParede(sala3[0], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[3]);
-	criaParede(sala3[2], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[1]);
+	criaParedeDefinida(sala3[0], 1.25, sala3[1], sala3[0], alturaSala12, sala3[3]);
+	criaParedeDefinida(sala3[2], alturaSala12, sala1[1], sala1[0], alturaEdificio+1.5, sala1[1]);
+	criaParedeDefinida(sala3[0], 0, sala3[1], sala3[0], 1.25, sala23[1]);
+	criaParedeDefinida(sala3[0], 0, sala23[3], sala3[0], 1.25, sala3[3]);
+	criaParedeDefinida(sala1[0]+2, alturaSala12, sala1[1], sala1[0]+2, alturaEdificio+1.5, sala2[1]);
+	criaParedeDefinida(sala3[2], 0, sala3[1], sala3[0], alturaSala12, sala3[1]);
+	criaParedeDefinida(sala3[0], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[3]);
+	criaParedeDefinida(sala3[2], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[1]);
 	glBindTexture(GL_TEXTURE_2D,texture[12]);
-	criaHorizontal(sala1[0], alturaEdificio+1.5, sala1[1], sala3[2], alturaEdificio+1.5, sala3[3]);
+	criaHorizontalDefinida(sala1[0], alturaEdificio+1.5, sala1[1], sala3[2], alturaEdificio+1.5, sala3[3]);
 	glBindTexture(GL_TEXTURE_2D,texture[4]);
-	criaHorizontal(sala3[2], 0, sala1[1], sala3[0], 0, sala3[3]);
+	criaHorizontalDefinida(sala3[2], 0, sala1[1], sala3[0], 0, sala3[3]);
 	
 	// -------interior sala 3-----------
     glBindTexture(GL_TEXTURE_2D, texture[2]);
 	
 	//paredes do meio
-	criaParede(sala3[0]+2, 0, sala3[1]-2, sala3[2]-2, alturaSala12, sala3[1]-2);
-	criaParede(sala3[2]-2, 0, sala3[1]-2-0.1, sala3[0]+2, alturaSala12, sala3[1]-2-0.1);
-	criaParede(sala3[2]-2, 0, sala3[1]-2, sala3[2]-2, alturaSala12, sala3[1]-2-0.1);
-	criaParede(sala3[0]+2, 0, sala3[1]-2-0.1, sala3[0]+2, alturaSala12, sala3[1]-2);
-	criaParede(sala3[0]+5, 0, sala3[1]-2.1, sala3[0]+5, alturaSala12, sala3[1]-4);
-	criaParede(sala3[0]+5-0.1, 0, sala3[1]-4, sala3[0]+5-0.1, alturaSala12, sala3[1]-2.1);
-	criaParede(sala3[0]+5, 0, sala3[1]-4, sala3[0]+5-0.1, alturaSala12, sala3[1]-4);
+	criaParedeDefinida(sala3[0]+2, 0, sala3[1]-2, sala3[2]-2, alturaSala12, sala3[1]-2);
+	criaParedeDefinida(sala3[2]-2, 0, sala3[1]-2-0.1, sala3[0]+2, alturaSala12, sala3[1]-2-0.1);
+	criaParedeDefinida(sala3[2]-2, 0, sala3[1]-2, sala3[2]-2, alturaSala12, sala3[1]-2-0.1);
+	criaParedeDefinida(sala3[0]+2, 0, sala3[1]-2-0.1, sala3[0]+2, alturaSala12, sala3[1]-2);
+	criaParedeDefinida(sala3[0]+5, 0, sala3[1]-2.1, sala3[0]+5, alturaSala12, sala3[1]-4);
+	criaParedeDefinida(sala3[0]+5-0.1, 0, sala3[1]-4, sala3[0]+5-0.1, alturaSala12, sala3[1]-2.1);
+	criaParedeDefinida(sala3[0]+5, 0, sala3[1]-4, sala3[0]+5-0.1, alturaSala12, sala3[1]-4);
 	
 	//paredes e vidro do canto
-	criaParede(sala3[2]-2, 0, sala3[3]+2, sala3[2]-2, alturaSala12, sala3[3]);
-	criaParede(sala3[2]-2.1, 0, sala3[3], sala3[2]-2.1, alturaSala12, sala3[3]+2);
-	criaParede(sala3[2]-2.1, 0, sala3[3]+2, sala3[2]-2, alturaSala12, sala3[3]+2);
-	criaParede(sala3[2]-2, alturaSala12-0.1, sala3[3]+2, sala3[2]-1.1, alturaSala12, sala3[3]+2);
-	criaParede(sala3[2]-2, 0, sala3[3]+2, sala3[2]-1.1, 0.1, sala3[3]+2);
-	criaHorizontal(sala3[2]-2, alturaSala12-0.1, sala3[3]+2, sala3[2]-1.1, alturaSala12-0.1, sala3[3]+1.8);
-	criaHorizontal(sala3[2]-1.1, 0.1, sala3[3]+2, sala3[2]-2, 0.1, sala3[3]+1.8);
-	criaParede(sala3[2]-1.1, 0, sala3[3]+2, sala3[2]-1, alturaSala12, sala3[3]+2);
-	criaParede(sala3[2]-1.1, 0, sala3[3]+1.8, sala3[2]-1.1, alturaSala12, sala3[3]+2);
-	criaParede(sala3[2]-1, 0, sala3[3]+2, sala3[2]-1, alturaSala12, sala3[3]+1.8);
+	criaParedeDefinida(sala3[2]-2, 0, sala3[3]+2, sala3[2]-2, alturaSala12, sala3[3]);
+	criaParedeDefinida(sala3[2]-2.1, 0, sala3[3], sala3[2]-2.1, alturaSala12, sala3[3]+2);
+	criaParedeDefinida(sala3[2]-2.1, 0, sala3[3]+2, sala3[2]-2, alturaSala12, sala3[3]+2);
+	criaParedeDefinida(sala3[2]-2, alturaSala12-0.1, sala3[3]+2, sala3[2]-1.1, alturaSala12, sala3[3]+2);
+	criaParedeDefinida(sala3[2]-2, 0, sala3[3]+2, sala3[2]-1.1, 0.1, sala3[3]+2);
+	criaHorizontalDefinida(sala3[2]-2, alturaSala12-0.1, sala3[3]+2, sala3[2]-1.1, alturaSala12-0.1, sala3[3]+1.8);
+	criaHorizontalDefinida(sala3[2]-1.1, 0.1, sala3[3]+2, sala3[2]-2, 0.1, sala3[3]+1.8);
+	criaParedeDefinida(sala3[2]-1.1, 0, sala3[3]+2, sala3[2]-1, alturaSala12, sala3[3]+2);
+	criaParedeDefinida(sala3[2]-1.1, 0, sala3[3]+1.8, sala3[2]-1.1, alturaSala12, sala3[3]+2);
+	criaParedeDefinida(sala3[2]-1, 0, sala3[3]+2, sala3[2]-1, alturaSala12, sala3[3]+1.8);
 	
-	criaParede(sala3[2]-1, 0, sala3[3]+1.8, sala3[2]-1.1, alturaSala12, sala3[3]+1.8);
-	criaHorizontal(sala3[2]-1.1, alturaSala12-0.1, sala3[3]+2, sala3[2]-2, alturaSala12-0.1, sala3[3]+1.8);
-	criaHorizontal(sala3[2]-2, 0.1, sala3[3]+2, sala3[2]-1.1, 0.1, sala3[3]+1.8);
-	criaParede(sala3[2]-1.1, 0, sala3[3]+1.8, sala3[2]-2, 0.1, sala3[3]+1.8);
-	criaParede(sala3[2]-1.1, alturaSala12-0.1, sala3[3]+1.8, sala3[2]-2, alturaSala12, sala3[3]+1.8);
+	criaParedeDefinida(sala3[2]-1, 0, sala3[3]+1.8, sala3[2]-1.1, alturaSala12, sala3[3]+1.8);
+	criaHorizontalDefinida(sala3[2]-1.1, alturaSala12-0.1, sala3[3]+2, sala3[2]-2, alturaSala12-0.1, sala3[3]+1.8);
+	criaHorizontalDefinida(sala3[2]-2, 0.1, sala3[3]+2, sala3[2]-1.1, 0.1, sala3[3]+1.8);
+	criaParedeDefinida(sala3[2]-1.1, 0, sala3[3]+1.8, sala3[2]-2, 0.1, sala3[3]+1.8);
+	criaParedeDefinida(sala3[2]-1.1, alturaSala12-0.1, sala3[3]+1.8, sala3[2]-2, alturaSala12, sala3[3]+1.8);
 
 	glBindTexture(GL_TEXTURE_2D,texture[9]);
 	glEnable(GL_BLEND);
