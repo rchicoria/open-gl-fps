@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -85,16 +86,32 @@ GLuint fogfilter = 2;
 GLfloat fogColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
 // Furos dos tiros
+int furosMax = 10;
 GLfloat furos[10][5];
 GLint furosPos = 0;
 GLint furosTam = 0;
-GLint furosMax = 10;
+
+// Alvos
+int numAlvos = 4;
+GLfloat alvos[4][6] = { // {x, y, z, angulo, estado (0 ok 90 ko), sala}
+	{-0.9, 0, -4.5, 90, 0, 2},
+	{2, alturaSala12+0.01, 0.5, 90, 0, 3},
+	{2, alturaSala12+0.01, -1.5, 90, 0, 3},
+	{sala3[2]-0.5, 0, sala3[3]+1.7, 0, 0, 3},
+};
+GLint alvosOK = 4;
+GLfloat lAlvo = 0.434;
+GLfloat aAlvo = 0.981;
 
 // Materiais
 GLfloat goldAmbient[] = {0.24725, 0.1995, 0.0745};
 GLfloat goldDiffuse[] = {0.75164, 0.60648, 0.22648};
 GLfloat goldSpecular[] = {0.628281, 0.555802, 0.366065};
 GLfloat goldShininess = 128 * 0.4;
+GLfloat rubyAmbient[] = {0.1745, 0.01175, 0.01175};
+GLfloat rubyDiffuse[] = {0.61424, 0.04136, 0.04136};
+GLfloat rubySpecular[] = {0.727811, 0.626959, 0.626959};
+GLfloat rubyShininess = 128 * 0.6;
 
 void iluminacao(GLfloat lookLant[]);
 
@@ -134,6 +151,7 @@ void textures()
 	criaTextura(10, "img/broken_glass.bmp");
 	criaTextura(11, "img/tecto.bmp");
 	criaTextura(12, "img/tecto2.bmp");
+	criaTextura(13, "img/alvo.bmp");
 }
 
 /*
@@ -195,6 +213,20 @@ float mod(float n)
 	if (n == 0)
 		return 0.0;
 	return sqrt(n*n);
+}
+
+GLfloat min(GLfloat a, GLfloat b)
+{
+	if (a < b)
+		return a;
+	return b;
+}
+
+GLfloat max(GLfloat a, GLfloat b)
+{
+	if (a > b)
+		return a;
+	return b;
 }
 
 /*
@@ -270,6 +302,33 @@ void criaParedeTexturaUnica(float x0, float y0, float z0, float x1, float y1, fl
 	glPopMatrix();
 }
 
+void criaParedeDefinida(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	GLfloat step = 1;
+	if (x0 == x1) // Virada para Este
+	{
+		if (z0 < z1)
+			for (GLfloat z = z0; z < z1; z += step)
+				for (GLfloat y = y0; y < y1; y += step)
+					criaParede(x0, y, z, x0, min(y+step, y1), min(z+step, z1));
+		else
+			for (GLfloat z = z0; z > z1; z -= step)
+				for (GLfloat y = y0; y < y1; y += step)
+					criaParede(x0, y, z, x0, min(y+step, y1), max(z-step, z1));
+	}
+	else // Virada para Norte
+	{
+		if (x0 < x1)
+			for (GLfloat x = x0; x < x1; x += step)
+				for (GLfloat y = y0; y < y1; y += step)
+					criaParede(x, y, z0, min(x+step, x1), min(y+step, y1), z0);
+		else
+			for (GLfloat x = x0; x > x1; x -= step)
+				for (GLfloat y = y0; y < y1; y += step)
+					criaParede(x, y, z0, max(x-step, x1), min(y+step, y1), z0);
+	}
+}
+
 /*
  *	Cria um tecto com textura com base no ponto do canto inf. esq. e canto sup. dir.
  */
@@ -295,6 +354,33 @@ void criaHorizontalTexturaUnica(float x0, float y0, float z0, float x1, float y1
 			glTexCoord2f(1.0f,0.0f); glVertex3f( x1, y1, z0);
 		glEnd();
 	glPopMatrix();
+}
+
+void criaHorizontalDefinida(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	GLfloat step = 1;
+	if (x0 < x1)
+	{
+		if (z0 < z1)
+			for (GLfloat z = z0; z < z1; z += step)
+				for (GLfloat x = x0; x < x1; x += step)
+					criaHorizontal(x, y0, z, min(x+step, x1), y0, min(z+step, z1));
+		else
+			for (GLfloat z = z0; z > z1; z -= step)
+				for (GLfloat x = x0; x < x1; x += step)
+					criaHorizontal(x, y0, z, min(x+step, x1), y0, max(z-step, z1));
+	}
+	else
+	{
+		if (z0 < z1)
+			for (GLfloat z = z0; z < z1; z += step)
+				for (GLfloat x = x0; x > x1; x -= step)
+					criaHorizontal(x, y0, z, max(x-step, x1), y0, min(z+step, z1));
+		else
+			for (GLfloat z = z0; z > z1; z -= step)
+				for (GLfloat x = x0; x > x1; x -= step)
+					criaHorizontal(x, y0, z, max(x-step, x1), y0, max(z-step, z1));
+	}
 }
 
 /*
@@ -345,13 +431,35 @@ void criaCaixa(float x, float y, float z, float angulo)
 	glDisable(GL_TEXTURE_2D);
 }
 
+/*
+ *	Cria o alvo a ser abatido
+ */
+void criaAlvo(GLfloat* alvo)
+{
+    glEnable(GL_TEXTURE_2D);
+    glColor4f(1,1,1,1);
+    iluminaSala(alvo[5]);
+	glPushMatrix();
+		glTranslatef(alvo[0], alvo[1]+0.02, alvo[2]);
+	    glRotatef(alvo[3], 0, 1, 0);
+	    glRotatef(-alvo[4], 1, 0, 0);
+		glBindTexture(GL_TEXTURE_2D,texture[13]);
+	    criaParedeTexturaUnica(-lAlvo/2, 0, 0, lAlvo/2, aAlvo, 0);
+		glBindTexture(GL_TEXTURE_2D,texture[3]);
+	    criaParedeTexturaUnica(lAlvo/2, 0, -0.02, -lAlvo/2, aAlvo, -0.02);
+	    criaParedeTexturaUnica(lAlvo/2, 0, 0, lAlvo/2, aAlvo, -0.02);
+	    criaParedeTexturaUnica(-lAlvo/2, 0, -0.02, -lAlvo/2, aAlvo, 0);
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+}
+
 void furoTiro(GLfloat x, GLfloat y, GLfloat z, GLfloat ang, GLfloat ang2)
 {
 	glDisable(GL_TEXTURE_2D);
     glColor4f(0.3, 0.3, 0.3, 1);
 	glPushMatrix();
 		glTranslatef(x, y, z);
-	    glRotatef(180-ang2, 1, 0, 0);
+	    glRotatef(ang2, 1, 0, 0);
 	    glRotatef(ang, 0, 1, 0);
 	    glutSolidCone(0.015, 0.001, 20, 20);
 	glPopMatrix();
@@ -373,25 +481,25 @@ void edificio()
 	// Sala 1
 	iluminaSala(1);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	criaParede(sala1[0], 0, sala1[3], sala12[0], 1.25, sala1[3]);
-	criaParede(sala12[2], 0, sala1[3], sala1[2], 1.25, sala1[3]);
-	criaParede(sala1[0], 1.25, sala1[3], sala1[2], alturaSala12, sala1[3]);
-	criaParede(sala3[0], 0, sala1[1], sala1[0], alturaSala12, sala1[1]);
-	criaParede(sala1[0], 0, sala1[1], sala1[0], alturaSala12, sala1[3]);
-	criaParede(sala1[2], 0, sala1[3], sala1[2], alturaSala12, sala1[1]);
+	criaParedeDefinida(sala1[0], 0, sala1[3], sala12[0], 1.25, sala1[3]);
+	criaParedeDefinida(sala12[2], 0, sala1[3], sala1[2], 1.25, sala1[3]);
+	criaParedeDefinida(sala1[0], 1.25, sala1[3], sala1[2], alturaSala12, sala1[3]);
+	criaParedeDefinida(sala3[0], 0, sala1[1], sala1[0], alturaSala12, sala1[1]);
+	criaParedeDefinida(sala1[0], 0, sala1[1], sala1[0], alturaSala12, sala1[3]);
+	criaParedeDefinida(sala1[2], 0, sala1[3], sala1[2], alturaSala12, sala1[1]);
 	glBindTexture(GL_TEXTURE_2D,texture[11]);
-	criaHorizontal(sala1[0], alturaSala12, sala1[1], sala1[2], alturaSala12, sala1[3]);
+	criaHorizontalDefinida(sala1[0], alturaSala12, sala1[1], sala1[2], alturaSala12, sala1[3]);
     glBindTexture(GL_TEXTURE_2D,texture[4]);
-    criaHorizontal(sala1[2], 0, sala1[1], sala1[0], 0, sala1[3]);
+    criaHorizontalDefinida(sala1[2], 0, sala1[1], sala1[0], 0, sala1[3]);
 	apagaLuzes();
 	
 	// Sala 1 <-> Sala 2
 	iluminaSala(1);
 	iluminaSala(2);
 	glBindTexture(GL_TEXTURE_2D,texture[3]);
-	criaParede(sala12[0], 0, sala12[1], sala12[0], 1.25, sala12[3]);
-	criaParede(sala12[2], 0, sala12[3], sala12[2], 1.25, sala12[1]);
-	criaHorizontal(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
+	criaParedeDefinida(sala12[0], 0, sala12[1], sala12[0], 1.25, sala12[3]);
+	criaParedeDefinida(sala12[2], 0, sala12[3], sala12[2], 1.25, sala12[1]);
+	criaHorizontalDefinida(sala12[0], 1.25, sala12[1], sala12[2], 1.25, sala12[3]);
 	// Vidro
 	if(text_vidro)
 	    glBindTexture(GL_TEXTURE_2D,texture[5]);
@@ -404,95 +512,95 @@ void edificio()
 	// Aluminio
 	glBindTexture(GL_TEXTURE_2D,texture[6]);
 	glDisable(GL_BLEND);
-    criaParede(sala12[2], 1.2, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
-    criaParede(sala12[2], 0, sala12[1]-0.005, sala12[0], 0.05, sala12[1]-0.005);
-    criaParede(sala12[2], 0, sala12[1]-0.005, sala12[2]-0.05, 1.25, sala12[1]-0.005);
-    criaParede(sala12[0]+0.05, 0, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
+    criaParedeDefinida(sala12[2], 1.2, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
+    criaParedeDefinida(sala12[2], 0, sala12[1]-0.005, sala12[0], 0.05, sala12[1]-0.005);
+    criaParedeDefinida(sala12[2], 0, sala12[1]-0.005, sala12[2]-0.05, 1.25, sala12[1]-0.005);
+    criaParedeDefinida(sala12[0]+0.05, 0, sala12[1]-0.005, sala12[0], 1.25, sala12[1]-0.005);
     glDisable(GL_TEXTURE_2D);
     glColor4f(0,0,0,1);
-    criaParede(sala12[0]+0.055, 0.05, sala12[1], sala12[0]+0.05, 1.25, sala12[1]-0.005);
-    criaParede(sala12[2]-0.05, 0.05, sala12[1]-0.005, sala12[2]-0.055, 1.25, sala12[1]);
-    criaHorizontal(sala12[0], 1.2, sala12[1], sala12[2], 1.2, sala12[1]-0.005);
-    criaHorizontal(sala12[2], 0.05, sala12[1], sala12[0], 0.05, sala12[1]-0.005);
+    criaParedeDefinida(sala12[0]+0.055, 0.05, sala12[1], sala12[0]+0.05, 1.25, sala12[1]-0.005);
+    criaParedeDefinida(sala12[2]-0.05, 0.05, sala12[1]-0.005, sala12[2]-0.055, 1.25, sala12[1]);
+    criaHorizontalDefinida(sala12[0], 1.2, sala12[1], sala12[2], 1.2, sala12[1]-0.005);
+    criaHorizontalDefinida(sala12[2], 0.05, sala12[1], sala12[0], 0.05, sala12[1]-0.005);
     glColor4f(1,1,1,1);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D,texture[4]);
-    criaHorizontal(sala1[2], 0, sala2[1]+0.1, sala1[0], 0, sala2[1]);
+    criaHorizontalDefinida(sala1[2], 0, sala2[1]+0.1, sala1[0], 0, sala2[1]);
 	apagaLuzes();
 	
 	// Sala 2
 	iluminaSala(2);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	criaParede(sala12[0], 0, sala2[1], sala2[0], 1.25, sala2[1]);
-	criaParede(sala2[2], 0, sala2[1], sala12[2], 1.25, sala2[1]);
-	criaParede(sala2[2], 1.25, sala2[1], sala2[0], alturaSala12, sala2[1]);
-	criaParede(sala2[0], 0, sala2[1], sala2[0], alturaSala12, sala2[3]);
-	criaParede(sala2[2], 1.25, sala2[3], sala2[2], alturaSala12, sala2[1]);
-	criaParede(sala2[2], 0, sala23[1], sala2[2], 1.25, sala2[1]);
-	criaParede(sala2[2], 0, sala2[3], sala2[2], 1.25, sala23[3]);
+	criaParedeDefinida(sala12[0], 0, sala2[1], sala2[0], 1.25, sala2[1]);
+	criaParedeDefinida(sala2[2], 0, sala2[1], sala12[2], 1.25, sala2[1]);
+	criaParedeDefinida(sala2[2], 1.25, sala2[1], sala2[0], alturaSala12, sala2[1]);
+	criaParedeDefinida(sala2[0], 0, sala2[1], sala2[0], alturaSala12, sala2[3]);
+	criaParedeDefinida(sala2[2], 1.25, sala2[3], sala2[2], alturaSala12, sala2[1]);
+	criaParedeDefinida(sala2[2], 0, sala23[1], sala2[2], 1.25, sala2[1]);
+	criaParedeDefinida(sala2[2], 0, sala2[3], sala2[2], 1.25, sala23[3]);
 	glBindTexture(GL_TEXTURE_2D,texture[11]);
-	criaHorizontal(sala2[0], alturaSala12, sala2[1], sala2[0]+2, alturaSala12, sala2[3]);
+	criaHorizontalDefinida(sala2[0], alturaSala12, sala2[1], sala2[0]+2, alturaSala12, sala2[3]);
 	apagaLuzes();
 	
 	// Sala 2 <-> Sala 3
 	iluminaSala(2);
 	iluminaSala(3);
 	glBindTexture(GL_TEXTURE_2D,texture[3]);
-	criaParede(sala23[2], 0, sala23[1], sala23[0], 1.25, sala23[1]);
-	criaParede(sala23[0], 0, sala23[3], sala23[2], 1.25, sala23[3]);
-	criaHorizontal(sala23[0], 1.25, sala23[1], sala23[2], 1.25, sala23[3]);
+	criaParedeDefinida(sala23[2], 0, sala23[1], sala23[0], 1.25, sala23[1]);
+	criaParedeDefinida(sala23[0], 0, sala23[3], sala23[2], 1.25, sala23[3]);
+	criaHorizontalDefinida(sala23[0], 1.25, sala23[1], sala23[2], 1.25, sala23[3]);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	criaParede(sala1[0]+2, alturaSala12, sala2[1], sala1[0]+2, alturaEdificio+1.5, sala2[3]);
-	criaParede(sala2[0], 0, sala2[3], sala3[0], alturaEdificio+1.5, sala2[3]);
+	criaParedeDefinida(sala1[0]+2, alturaSala12, sala2[1], sala1[0]+2, alturaEdificio+1.5, sala2[3]);
+	criaParedeDefinida(sala2[0], 0, sala2[3], sala3[0], alturaEdificio+1.5, sala2[3]);
 	glBindTexture(GL_TEXTURE_2D,texture[4]);
-	criaHorizontal(sala3[0], 0, sala2[0]-0.1, sala2[0], 0, sala3[3]);
+	criaHorizontalDefinida(sala3[0], 0, sala2[0]-0.1, sala2[0], 0, sala3[3]);
 	apagaLuzes();
 	
 	// Sala 3
 	iluminaSala(3);
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
-	criaParede(sala3[0], 1.25, sala3[1], sala3[0], alturaSala12, sala3[3]);
-	criaParede(sala3[2], alturaSala12, sala1[1], sala1[0], alturaEdificio+1.5, sala1[1]);
-	criaParede(sala3[0], 0, sala3[1], sala3[0], 1.25, sala23[1]);
-	criaParede(sala3[0], 0, sala23[3], sala3[0], 1.25, sala3[3]);
-	criaParede(sala1[0]+2, alturaSala12, sala1[1], sala1[0]+2, alturaEdificio+1.5, sala2[1]);
-	criaParede(sala3[2], 0, sala3[1], sala3[0], alturaSala12, sala3[1]);
-	criaParede(sala3[0], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[3]);
-	criaParede(sala3[2], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[1]);
+	criaParedeDefinida(sala3[0], 1.25, sala3[1], sala3[0], alturaSala12, sala3[3]);
+	criaParedeDefinida(sala3[2], alturaSala12, sala1[1], sala1[0], alturaEdificio+1.5, sala1[1]);
+	criaParedeDefinida(sala3[0], 0, sala3[1], sala3[0], 1.25, sala23[1]);
+	criaParedeDefinida(sala3[0], 0, sala23[3], sala3[0], 1.25, sala3[3]);
+	criaParedeDefinida(sala1[0]+2, alturaSala12, sala1[1], sala1[0]+2, alturaEdificio+1.5, sala2[1]);
+	criaParedeDefinida(sala3[2], 0, sala3[1], sala3[0], alturaSala12, sala3[1]);
+	criaParedeDefinida(sala3[0], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[3]);
+	criaParedeDefinida(sala3[2], 0, sala3[3], sala3[2], alturaEdificio+1.5, sala3[1]);
 	glBindTexture(GL_TEXTURE_2D,texture[12]);
-	criaHorizontal(sala1[0], alturaEdificio+1.5, sala1[1], sala3[2], alturaEdificio+1.5, sala3[3]);
+	criaHorizontalDefinida(sala1[0], alturaEdificio+1.5, sala1[1], sala3[2], alturaEdificio+1.5, sala3[3]);
 	glBindTexture(GL_TEXTURE_2D,texture[4]);
-	criaHorizontal(sala3[2], 0, sala1[1], sala3[0], 0, sala3[3]);
+	criaHorizontalDefinida(sala3[2], 0, sala1[1], sala3[0], 0, sala3[3]);
 	
 	// -------interior sala 3-----------
     glBindTexture(GL_TEXTURE_2D, texture[2]);
 	
 	//paredes do meio
-	criaParede(sala3[0]+2, 0, sala3[1]-2, sala3[2]-2, alturaSala12, sala3[1]-2);
-	criaParede(sala3[2]-2, 0, sala3[1]-2-0.1, sala3[0]+2, alturaSala12, sala3[1]-2-0.1);
-	criaParede(sala3[2]-2, 0, sala3[1]-2, sala3[2]-2, alturaSala12, sala3[1]-2-0.1);
-	criaParede(sala3[0]+2, 0, sala3[1]-2-0.1, sala3[0]+2, alturaSala12, sala3[1]-2);
-	criaParede(sala3[0]+5, 0, sala3[1]-2.1, sala3[0]+5, alturaSala12, sala3[1]-4);
-	criaParede(sala3[0]+5-0.1, 0, sala3[1]-4, sala3[0]+5-0.1, alturaSala12, sala3[1]-2.1);
-	criaParede(sala3[0]+5, 0, sala3[1]-4, sala3[0]+5-0.1, alturaSala12, sala3[1]-4);
+	criaParedeDefinida(sala3[0]+2, 0, sala3[1]-2, sala3[2]-2, alturaSala12, sala3[1]-2);
+	criaParedeDefinida(sala3[2]-2, 0, sala3[1]-2-0.1, sala3[0]+2, alturaSala12, sala3[1]-2-0.1);
+	criaParedeDefinida(sala3[2]-2, 0, sala3[1]-2, sala3[2]-2, alturaSala12, sala3[1]-2-0.1);
+	criaParedeDefinida(sala3[0]+2, 0, sala3[1]-2-0.1, sala3[0]+2, alturaSala12, sala3[1]-2);
+	criaParedeDefinida(sala3[0]+5, 0, sala3[1]-2.1, sala3[0]+5, alturaSala12, sala3[1]-4);
+	criaParedeDefinida(sala3[0]+5-0.1, 0, sala3[1]-4, sala3[0]+5-0.1, alturaSala12, sala3[1]-2.1);
+	criaParedeDefinida(sala3[0]+5, 0, sala3[1]-4, sala3[0]+5-0.1, alturaSala12, sala3[1]-4);
 	
 	//paredes e vidro do canto
-	criaParede(sala3[2]-2, 0, sala3[3]+2, sala3[2]-2, alturaSala12, sala3[3]);
-	criaParede(sala3[2]-2.1, 0, sala3[3], sala3[2]-2.1, alturaSala12, sala3[3]+2);
-	criaParede(sala3[2]-2.1, 0, sala3[3]+2, sala3[2]-2, alturaSala12, sala3[3]+2);
-	criaParede(sala3[2]-2, alturaSala12-0.1, sala3[3]+2, sala3[2]-1.1, alturaSala12, sala3[3]+2);
-	criaParede(sala3[2]-2, 0, sala3[3]+2, sala3[2]-1.1, 0.1, sala3[3]+2);
-	criaHorizontal(sala3[2]-2, alturaSala12-0.1, sala3[3]+2, sala3[2]-1.1, alturaSala12-0.1, sala3[3]+1.8);
-	criaHorizontal(sala3[2]-1.1, 0.1, sala3[3]+2, sala3[2]-2, 0.1, sala3[3]+1.8);
-	criaParede(sala3[2]-1.1, 0, sala3[3]+2, sala3[2]-1, alturaSala12, sala3[3]+2);
-	criaParede(sala3[2]-1.1, 0, sala3[3]+1.8, sala3[2]-1.1, alturaSala12, sala3[3]+2);
-	criaParede(sala3[2]-1, 0, sala3[3]+2, sala3[2]-1, alturaSala12, sala3[3]+1.8);
+	criaParedeDefinida(sala3[2]-2, 0, sala3[3]+2, sala3[2]-2, alturaSala12, sala3[3]);
+	criaParedeDefinida(sala3[2]-2.1, 0, sala3[3], sala3[2]-2.1, alturaSala12, sala3[3]+2);
+	criaParedeDefinida(sala3[2]-2.1, 0, sala3[3]+2, sala3[2]-2, alturaSala12, sala3[3]+2);
+	criaParedeDefinida(sala3[2]-2, alturaSala12-0.1, sala3[3]+2, sala3[2]-1.1, alturaSala12, sala3[3]+2);
+	criaParedeDefinida(sala3[2]-2, 0, sala3[3]+2, sala3[2]-1.1, 0.1, sala3[3]+2);
+	criaHorizontalDefinida(sala3[2]-2, alturaSala12-0.1, sala3[3]+2, sala3[2]-1.1, alturaSala12-0.1, sala3[3]+1.8);
+	criaHorizontalDefinida(sala3[2]-1.1, 0.1, sala3[3]+2, sala3[2]-2, 0.1, sala3[3]+1.8);
+	criaParedeDefinida(sala3[2]-1.1, 0, sala3[3]+2, sala3[2]-1, alturaSala12, sala3[3]+2);
+	criaParedeDefinida(sala3[2]-1.1, 0, sala3[3]+1.8, sala3[2]-1.1, alturaSala12, sala3[3]+2);
+	criaParedeDefinida(sala3[2]-1, 0, sala3[3]+2, sala3[2]-1, alturaSala12, sala3[3]+1.8);
 	
-	criaParede(sala3[2]-1, 0, sala3[3]+1.8, sala3[2]-1.1, alturaSala12, sala3[3]+1.8);
-	criaHorizontal(sala3[2]-1.1, alturaSala12-0.1, sala3[3]+2, sala3[2]-2, alturaSala12-0.1, sala3[3]+1.8);
-	criaHorizontal(sala3[2]-2, 0.1, sala3[3]+2, sala3[2]-1.1, 0.1, sala3[3]+1.8);
-	criaParede(sala3[2]-1.1, 0, sala3[3]+1.8, sala3[2]-2, 0.1, sala3[3]+1.8);
-	criaParede(sala3[2]-1.1, alturaSala12-0.1, sala3[3]+1.8, sala3[2]-2, alturaSala12, sala3[3]+1.8);
+	criaParedeDefinida(sala3[2]-1, 0, sala3[3]+1.8, sala3[2]-1.1, alturaSala12, sala3[3]+1.8);
+	criaHorizontalDefinida(sala3[2]-1.1, alturaSala12-0.1, sala3[3]+2, sala3[2]-2, alturaSala12-0.1, sala3[3]+1.8);
+	criaHorizontalDefinida(sala3[2]-2, 0.1, sala3[3]+2, sala3[2]-1.1, 0.1, sala3[3]+1.8);
+	criaParedeDefinida(sala3[2]-1.1, 0, sala3[3]+1.8, sala3[2]-2, 0.1, sala3[3]+1.8);
+	criaParedeDefinida(sala3[2]-1.1, alturaSala12-0.1, sala3[3]+1.8, sala3[2]-2, alturaSala12, sala3[3]+1.8);
 
 	glBindTexture(GL_TEXTURE_2D,texture[9]);
 	glEnable(GL_BLEND);
@@ -542,7 +650,7 @@ void mapa()
 	criaHorizontal(sala3[2]-2, 0.1, sala3[3]+2.1, sala3[2]-2.1, 0.1, sala3[3]); // Parede vidro 1
 	criaHorizontal(sala3[2]-1.1, 0.1, sala3[3]+2.1, sala3[2]-2.1, 0.1, sala3[3]+1.8); // Parede vidro 2
 	criaHorizontal(sala3[2]-2, 0.1, sala3[1]-2, sala3[0]+2, 0.1, sala3[1]-2.1); // Parede em T 1
-	criaHorizontal(sala3[0]+5.1, 0.1, sala3[1]-2.1, sala3[0]+5, 0.1, sala3[1]-4); // Parede em T 2
+	criaHorizontal(sala3[0]+5, 0.1, sala3[1]-2.1, sala3[0]+4.9, 0.1, sala3[1]-4); // Parede em T 2
 	
 	glDisable(GL_TEXTURE_2D);
 }
@@ -597,7 +705,11 @@ void iluminacao(GLfloat lookLant[])
  *	Preenche o cenário com os vários objectos
  */
 void cenario(int view)
-{   
+{
+	// Alvos
+	for (int i=0; i<numAlvos; i++)
+		criaAlvo(alvos[i]);
+	
 	// Sala 1
 	iluminaSala(1, view);
 	glPushMatrix();
@@ -629,7 +741,28 @@ void cenario(int view)
 	iluminaSala(2, view);
 	iluminaSala(3, view);
 	
-	criaCaixa(1, 0.2, -3.5, 35);
+	criaCaixa(-1.2, 0.2, -3.95, 5);
+	criaCaixa(-1.7, 0.2, -3.95, -10);
+	glPushMatrix();
+		glDisable(GL_COLOR_MATERIAL);
+		glMaterialfv(GL_FRONT,GL_AMBIENT, goldAmbient);
+        glMaterialf(GL_FRONT,GL_SHININESS, goldShininess);
+        glMaterialfv(GL_FRONT,GL_SPECULAR, goldSpecular);
+        glMaterialfv(GL_FRONT,GL_DIFFUSE, goldDiffuse);
+		glTranslatef(-1.3, 0.45, -3.9);
+		glutSolidSphere(0.05, 100, 100);
+		glEnable(GL_COLOR_MATERIAL);
+	glPopMatrix();
+	glPushMatrix();
+		glDisable(GL_COLOR_MATERIAL);
+		glMaterialfv(GL_FRONT,GL_AMBIENT, rubyAmbient);
+        glMaterialf(GL_FRONT,GL_SHININESS, rubyShininess);
+        glMaterialfv(GL_FRONT,GL_SPECULAR, rubySpecular);
+        glMaterialfv(GL_FRONT,GL_DIFFUSE, rubyDiffuse);
+		glTranslatef(-1.2, 0.425, -3.98);
+		glutSolidSphere(0.025, 100, 100);
+		glEnable(GL_COLOR_MATERIAL);
+	glPopMatrix();
 	
 	apagaLuzes();
 	
@@ -704,7 +837,7 @@ void display(void)
 	glViewport (wExtra/2, hExtra/2, wScreen/6, wScreen/6);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-    glOrtho (-xC*2.5, xC*2.5, -yC*2.5, yC*2.5, -zC, zC);
+    glOrtho (-xC*2.5, xC*2.5, -yC*2.5, yC*2.5, -zC*2.5, zC*2.5);
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(obsP[0], obsP[1], obsP[2], obsP[0], 0, obsP[2], sin(anguloH), 0, -cos(anguloH));
@@ -837,6 +970,37 @@ void keyUp(unsigned char key, int x, int y)
 }
 
 /*
+ *	Timer para a animação do alvo a ser derrubado
+ */
+void derrubaAlvo(int value)
+{
+	alvos[value][4] += 5;
+	if (alvos[value][4] < 90)
+		glutTimerFunc(msec, derrubaAlvo, value);
+}
+
+/*
+ *	Verifica se o tiro acertou em algum alvo e fá-lo rodar em caso afirmativo
+ */
+bool acertaAlvo(GLfloat* bala)
+{
+	for (int i=0; i<numAlvos; i++)
+	{
+		if (alvos[i][4] == 0) // Se está OK
+		{
+			if (alvos[i][3] == 0 && obsP[2] > alvos[i][2] && alvos[i][0]-lAlvo/2 <= bala[0] && alvos[i][0]+lAlvo/2 >= bala[0] && alvos[i][1] <= bala[1] && alvos[i][1]+aAlvo >= bala[1] && alvos[i][2] >= bala[2] && alvos[i][2]-0.1 <= bala[2]); // Se está virado para Sul
+			else if (alvos[i][3] == 90 && obsP[0] > alvos[i][0] && alvos[i][2]-lAlvo/2 <= bala[2] && alvos[i][2]+lAlvo/2 >= bala[2] && alvos[i][1] <= bala[1] && alvos[i][1]+aAlvo >= bala[1] && alvos[i][0] >= bala[0] && alvos[i][0]-0.1 <= bala[0]); // Se está virado para Este
+			else
+				continue;
+			glutTimerFunc(msec, derrubaAlvo, i);
+			alvosOK--;
+			return true;
+		}
+	}
+	return false;
+}
+
+/*
  *	Descobre onde é que o tiro acertou e faz qualquer coisa aí
  */
 void tiro(GLfloat x, GLfloat y, GLfloat z)
@@ -849,8 +1013,12 @@ void tiro(GLfloat x, GLfloat y, GLfloat z)
 		GLfloat ang = 0;
 		GLfloat ang2 = 0;
 		
+		// Alvos
+		if (acertaAlvo(bala))
+			break;
+		
 		// Paredes exteriores
-		if (bala[0] >= sala3[2]) // Parede Este
+		else if (bala[0] >= sala3[2]) // Parede Este
 		{
 			bala[0] = sala3[2]-0.001;
 			ang = 90;
@@ -908,6 +1076,70 @@ void tiro(GLfloat x, GLfloat y, GLfloat z)
 				bala[0] = 0.001;
 				ang = 90;
 			}
+		}
+		
+		// Sala 3
+		else if (bala[0] <= sala3[0] && obsP[0] >= sala3[0] && bala[0] >= sala2[2] && bala[1] <= alturaSala12 && !(bala[2] <= sala23[1] && bala[2] >= sala23[3] && bala[1] <= 1.25)) // Parede de ligação entre salas 2 e 3
+		{
+			bala[0] = sala3[0]+0.001;
+			ang = 90;
+		}
+		// Parede de blocos de vidro
+		else if (bala[0] <= sala3[2]-2 && obsP[0] >= sala3[2]-2 && bala[0] >= sala3[2]-2.1 && bala[1] <= alturaSala12 && bala[2] < sala3[3]+1.8) // Este
+		{
+			bala[0] = sala3[2]-2+0.001;
+			ang = 90;
+		}
+		else if (bala[0] >= sala3[2]-2.1 && obsP[0] <= sala3[2]-2 && bala[0] <= sala3[2]-2 && bala[1] <= alturaSala12 && bala[2] < sala3[3]+2.1) // Oeste
+		{
+			bala[0] = sala3[2]-2.1-0.001;
+			ang = 90;
+		}
+		else if (bala[0] >= sala3[2]-2.1 && bala[0] <= sala3[2]-1 && bala[1] <= alturaSala12 && bala[2] <= sala3[3]+2.1 && bala[2] >= sala3[3]+2) // Sul
+		{
+			bala[2] = sala3[3]+2+0.001;
+			ang = 0;
+		}
+		else if (bala[0] >= sala3[2]-1.1 && bala[0] <= sala3[2]-1 && bala[1] <= alturaSala12 && bala[2] <= sala3[3]+2 && bala[2] >= sala3[3]+1.8) // Ponta
+		{
+			bala[0] = sala3[2]-1+0.001;
+			ang = 90;
+		}
+		// Parede em T
+		else if (bala[2] <= sala3[1]-2 && obsP[2] >= sala3[1]-2 && bala[2] >= sala3[1]-2.1 && bala[1] <= alturaSala12 && bala[0] >= sala3[0]+2 && bala[0] <= sala3[2]-2) // z=0
+		{
+			bala[2] = sala3[1]-2+0.001;
+			ang = 0;
+		}
+		else if (bala[2] >= sala3[1]-2.1 && obsP[2] <= sala3[1]-2.1 && bala[2] <= sala3[1]-2 && bala[1] <= alturaSala12 && bala[0] >= sala3[0]+2 && bala[0] <= sala3[2]-2) // z=-0.1
+		{
+			bala[2] = sala3[1]-2.1-0.001;
+			ang = 0;
+		}
+		else if (bala[2] >= sala3[1]-4 && obsP[2] <= sala3[1]-4 && bala[2] <= sala3[1]-3.9 && bala[1] <= alturaSala12 && bala[0] >= sala3[0]+4.9 && bala[0] <= sala3[0]+5) // z=-2
+		{
+			bala[2] = sala3[1]-4-0.001;
+			ang = 0;
+		}
+		else if (bala[0] >= sala3[0]+2 && obsP[0] <= sala3[0]+2 && bala[0] <= sala3[0]+2.1 && bala[1] <= alturaSala12 && bala[2] >= sala3[1]-2.1 && bala[2] <= sala3[1]-2) // x=4.1
+		{
+			bala[0] = sala3[0]+2-0.001;
+			ang = 90;
+		}
+		else if (bala[0] <= sala3[2]-2 && obsP[0] >= sala3[2]-2 && bala[0] >= sala3[2]-2.1 && bala[1] <= alturaSala12 && bala[2] >= sala3[1]-2.1 && bala[2] <= sala3[1]-2) // x=9
+		{
+			bala[0] = sala3[2]-2+0.001;
+			ang = 90;
+		}
+		else if (bala[0] >= sala3[0]+4.9 && obsP[0] <= sala3[0]+4.9 && bala[0] <= sala3[0]+5 && bala[1] <= alturaSala12 && bala[2] >= sala3[1]-4 && bala[2] <= sala3[1]-2.1) // x=7
+		{
+			bala[0] = sala3[0]+4.9-0.001;
+			ang = 90;
+		}
+		else if (bala[0] <= sala3[0]+5 && obsP[0] >= sala3[0]+5 && bala[0] >= sala3[0]+4.9 && bala[1] <= alturaSala12 && bala[2] >= sala3[1]-4 && bala[2] <= sala3[1]-2.1) // x=7.1
+		{
+			bala[0] = sala3[0]+5+0.001;
+			ang = 90;
 		}
 		
 		// Ainda não acertou em nada
@@ -969,6 +1201,9 @@ GLfloat colisoesX(GLfloat x, GLfloat z)
 	// Sala 2
 	if (x > sala2[2]-0.15 && x < sala3[0] && !(z < sala23[1]-0.15 && z > sala23[3]+0.15) && obsP[0] < x) // Parede Este
 		return obsP[0];
+	// Alvo + caixas
+	if (x < alvos[0][0]+0.15 && x > alvos[0][0]-0.1 && z < -3.5 && obsP[0] > x)
+		return obsP[0];
 	
 	// Sala 3
 	if (x < sala3[0]+0.15 && x > sala2[2] && !(z < sala23[1]-0.15 && z > sala23[3]+0.15) && obsP[0] > x)
@@ -981,6 +1216,15 @@ GLfloat colisoesX(GLfloat x, GLfloat z)
 		if (sala3[2]-x+0.1 >= -(sala3[3]-z))
 			return obsP[0];
 	if (x > sala3[2]-1 && x < sala3[2]-1+0.15 && z < sala3[3]+2.1+0.15 && z > sala3[3]+1.8-0.15 && obsP[0] > x)
+		return obsP[0];
+	// Parede em T
+	if (x > sala3[0]+4.9-0.15 && x < sala3[0]+5 && z < sala3[1]-2.1 && z > sala3[1]-4-0.15 && obsP[0] < x)
+		return obsP[0];
+	if (x > sala3[0]+4.9 && x < sala3[0]+5+0.15 && z < sala3[1]-2.1 && z > sala3[1]-4-0.15 && obsP[0] > x)
+		return obsP[0];
+	if (x > sala3[0]+2-0.15 && x < sala3[0]+2 && z < sala3[1]-2+0.15 && z > sala3[1]-2.1-0.15 && obsP[0] < x)
+		return obsP[0];
+	if (x > sala3[2]-2 && x < sala3[2]-2+0.15 && z < sala3[1]-2+0.15 && z > sala3[1]-2.1-0.15 && obsP[0] > x)
 		return obsP[0];
 		
 	return x;
@@ -1000,6 +1244,9 @@ GLfloat colisoesZ(GLfloat x, GLfloat z)
 	// Sala 2
 	if (z > sala2[1]-0.15 && x < sala2[2]+0.15) // Parede Sul
 		return obsP[2];
+	// Alvo + caixas
+	if (x < alvos[0][0]+0.15 && z < -3.5 && z > -3.6 && obsP[2] > z)
+		return obsP[2];
 	
 	// Sala 2<->3
 	if (x > sala2[2]-0.15 && x < sala3[0] && ((z > sala23[1]-0.15 && obsP[2] < z) || (z < sala23[3]+0.15 && obsP[2] > z))) // Porta
@@ -1011,6 +1258,16 @@ GLfloat colisoesZ(GLfloat x, GLfloat z)
 		if (sala3[2]-x <= -(sala3[3]-z))
 			return obsP[2];
 	if (x > sala3[2]-2.1 && x < sala3[2]-1.1+0.15 && z > sala3[3]+1.8-0.15 && z < sala3[3]+2.1 && obsP[2] < z)
+		return obsP[2];
+	// Parede em T
+	if (x > sala3[0]+4.9-0.15 && x < sala3[0]+5+0.15 && z < sala3[1]-4 && z > sala3[1]-4-0.15 && obsP[2] < z)
+		return obsP[2];
+	if (x > sala3[0]+2-0.15 && x < sala3[2]-2+0.15 && z < sala3[1]-2+0.15 && z > sala3[1]-2.1 && obsP[2] > z)
+		return obsP[2];
+	if (x > sala3[0]+2-0.15 && x < sala3[2]-2+0.15 && z < sala3[1]-2 && z > sala3[1]-2.1-0.15 && obsP[2] < z)
+		return obsP[2];
+	// Alvo
+	if (x > sala3[2]-1.1 && z < sala3[3]+1.95 && obsP[2] > z)
 		return obsP[2];
 		
 	return z;
