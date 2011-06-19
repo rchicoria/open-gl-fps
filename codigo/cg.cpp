@@ -43,7 +43,7 @@ GLfloat sala3[] = {2.1, 2, 11, -5};
 // Câmara
 GLfloat anguloH = 0;
 GLfloat anguloV = 0;
-GLfloat obsP[] = {7, 0.6, -4};
+GLfloat obsP[] = {0, 0.6, -3.5};
 GLfloat velCamara = 0.003;
 GLfloat passo = 0.0;
 
@@ -304,7 +304,7 @@ void criaParedeTexturaUnica(float x0, float y0, float z0, float x1, float y1, fl
 
 void criaParedeDefinida(float x0, float y0, float z0, float x1, float y1, float z1)
 {
-	GLfloat step = 1;
+	GLfloat step = 0.5;
 	if (x0 == x1) // Virada para Este
 	{
 		if (z0 < z1)
@@ -713,27 +713,13 @@ void cenario(int view)
 	
 	// Sala 1
 	iluminaSala(1, view);
-	glPushMatrix();
-		glColor4f(0.0, 1.0, 0.0, 1.0);
-		glTranslatef(0, 0.5, 0);
-		glutSolidTeapot(0.1);
-	glPopMatrix();
-	glPushMatrix();
-		glDisable(GL_COLOR_MATERIAL);
-		glMaterialfv(GL_FRONT,GL_AMBIENT, goldAmbient);
-        glMaterialf(GL_FRONT,GL_SHININESS, goldShininess);
-        glMaterialfv(GL_FRONT,GL_SPECULAR, goldSpecular);
-        glMaterialfv(GL_FRONT,GL_DIFFUSE, goldDiffuse);
-		glColor4f(0.0, 1.0, 1.0, 1.0);
-		glTranslatef(-0.2, 1, 0.15);
-        glRotatef(0,0,1,0);
-		glutSolidSphere(0.05, 100, 100);
-		glEnable(GL_COLOR_MATERIAL);
-	glPopMatrix();
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 	criaCaixa(1, 0.2, 1.5, 30);
 	criaCaixa(0.55, 0.2, 1.7, 10);
 	criaCaixa(0.7, 0.6, 1.5, 55);
+	criaCaixa(-0.2, 0.2, -0.6, 5);
+	criaCaixa(-1.2, 0.2, -1, 20);
+	criaCaixa(-1.5, 0.2, 1.5, 45);
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 	
 	apagaLuzes();
@@ -774,9 +760,12 @@ void cenario(int view)
 	criaCaixa(9.55, 0.2, -4, 10);
 	criaCaixa(9.7, 0.6, -3.8, 55);
 	
-	criaCaixa(6, 0.2, 0.5, 30);
-	criaCaixa(5.55, 0.2, 0.8, 10);
-	criaCaixa(5.7, 0.6, 0.5, 55);
+	criaCaixa(6.6, 0.2, -0.5, 0);
+	criaCaixa(6.1, 0.2, -0.7, 10);
+	criaCaixa(6.3, 0.6, -0.5, 55);
+	criaCaixa(6.4, 1, -0.45, 70);
+	
+	criaCaixa(1.5, alturaSala12+0.3, -0.5, 40);
 	
 	glDisable(GL_TEXTURE_2D);
 	glColor4f(1,1,0.6,1);
@@ -1237,6 +1226,9 @@ GLfloat colisoesX(GLfloat x, GLfloat z)
 		return obsP[0];
 	if (x > sala3[2]-2 && x < sala3[2]-2+0.15 && z < sala3[1]-2+0.15 && z > sala3[1]-2.1-0.15 && obsP[0] > x)
 		return obsP[0];
+	// Caixas
+	if (x > 5.7 && x < 5.8 && z > -1 && z < 0 && obsP[0] < x)
+		return obsP[0];
 		
 	return x;
 }
@@ -1279,6 +1271,9 @@ GLfloat colisoesZ(GLfloat x, GLfloat z)
 		return obsP[2];
 	// Alvo
 	if (x > sala3[2]-1.1 && z < sala3[3]+1.95 && obsP[2] > z)
+		return obsP[2];
+	// Caixas
+	if (x > 5.7 && x < sala3[0]+5 && z > -1 && z < -0.9 && obsP[2] < z)
 		return obsP[2];
 		
 	return z;
