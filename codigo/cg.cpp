@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -87,8 +88,8 @@ GLint furosTam = 0;
 int numAlvos = 4;
 GLfloat alvos[4][6] = { // {x, y, z, angulo, estado (0 ok 90 ko), sala}
 	{-0.9, 0, -4.5, 90, 0, 2},
-	{2, alturaSala12, 0.5, 90, 0, 3},
-	{2, alturaSala12, -1.5, 90, 0, 3},
+	{2, alturaSala12+0.01, 0.5, 90, 0, 3},
+	{2, alturaSala12+0.01, -1.5, 90, 0, 3},
 	{sala3[2]-0.5, 0, sala3[3]+1.7, 0, 0, 3},
 };
 GLint alvosOK = 4;
@@ -714,7 +715,7 @@ void display(void)
 	glViewport (wExtra/2, hExtra/2, wScreen/6, wScreen/6);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-    glOrtho (-xC*2.5, xC*2.5, -yC*2.5, yC*2.5, -zC, zC);
+    glOrtho (-xC*2.5, xC*2.5, -yC*2.5, yC*2.5, -zC*2.5, zC*2.5);
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(obsP[0], obsP[1], obsP[2], obsP[0], 0, obsP[2], sin(anguloH), 0, -cos(anguloH));
@@ -961,12 +962,21 @@ void tiro(GLfloat x, GLfloat y, GLfloat z)
 			bala[0] = sala3[2]-2+0.001;
 			ang = 90;
 		}
-		else if (bala[0] >= sala3[2]-2.1 && obsP[0] <= sala3[2]-2.1 && bala[0] <= sala3[2]-2 && bala[1] <= alturaSala12 && bala[2] < sala3[3]+2.1) // Oeste
+		else if (bala[0] >= sala3[2]-2.1 && obsP[0] <= sala3[2]-2 && bala[0] <= sala3[2]-2 && bala[1] <= alturaSala12 && bala[2] < sala3[3]+2.1) // Oeste
 		{
 			bala[0] = sala3[2]-2.1-0.001;
 			ang = 90;
 		}
-		// Ainda tem de ser feito para a parte com vidro
+		else if (bala[0] >= sala3[2]-2.1 && bala[0] <= sala3[2]-1 && bala[1] <= alturaSala12 && bala[2] <= sala3[3]+2.1 && bala[2] >= sala3[3]+2) // Sul
+		{
+			bala[2] = sala3[3]+2+0.001;
+			ang = 0;
+		}
+		else if (bala[0] >= sala3[2]-1.1 && bala[0] <= sala3[2]-1 && bala[1] <= alturaSala12 && bala[2] <= sala3[3]+2 && bala[2] >= sala3[3]+1.8) // Ponta
+		{
+			bala[0] = sala3[2]-1+0.001;
+			ang = 90;
+		}
 		// Parede em T
 		else if (bala[2] <= sala3[1]-2 && obsP[2] >= sala3[1]-2 && bala[2] >= sala3[1]-2.1 && bala[1] <= alturaSala12 && bala[0] >= sala3[0]+2 && bala[0] <= sala3[2]-2) // z=0
 		{
