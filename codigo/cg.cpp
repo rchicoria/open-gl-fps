@@ -16,6 +16,7 @@
 #define PERSPECTIVE 0
 #define MAP 1
 #define WEAPON 2
+#define PI 3.14159
 
 /*
  *	Variáveis e constantes globais
@@ -54,6 +55,7 @@ GLfloat vel = 0.03;
 bool fullscreen = true;
 GLfloat recoil = 0;
 bool text_vidro = true;
+GLint   ctrlLant=0;
 
 // Luz ambiente
 GLfloat colorAmbient[4] = {0.1,0.1,0.1,1};
@@ -62,11 +64,16 @@ GLfloat localDif[4] ={1,1,1,1};
 GLfloat localSpec[4] ={1,1,1,1};
 GLfloat localPos1[4] ={1.9, 1.0, 1.9, 1.0};
 GLfloat localPos2[4] ={-1, 1.0, -3.5, 1.0};
-GLfloat localPos3[4] ={5, 1.0, -2, 1.0};
+GLfloat localPos3[4] ={5, alturaEdificio, -3, 1.0};
 GLfloat localAttCon =1.0;
 GLfloat localAttLin =0.05;
 GLfloat localAttQua =0.0;
 GLint lampadas[] = {true, true};
+
+//lanterna
+
+GLfloat concentracao = 0.3;
+GLfloat ang = 15;
 
 // Texturas
 GLuint texture[20];
@@ -89,7 +96,7 @@ GLfloat goldDiffuse[] = {0.75164, 0.60648, 0.22648};
 GLfloat goldSpecular[] = {0.628281, 0.555802, 0.366065};
 GLfloat goldShininess = 128 * 0.4;
 
-void iluminacao();
+void iluminacao(GLfloat lookLant[]);
 
 /*
  *	Cria uma nova textura e guarda-a no array de texturas
@@ -543,7 +550,7 @@ void mapa()
 /*
  *	Trata da definição das luzes
  */
-void iluminacao()
+void iluminacao(GLfloat lookLant[])
 {
     glLightfv(GL_LIGHT0, GL_POSITION, localPos1);
     glLightfv(GL_LIGHT0, GL_AMBIENT, localCor);
@@ -566,6 +573,22 @@ void iluminacao()
     glLightf (GL_LIGHT2, GL_CONSTANT_ATTENUATION, localAttCon);
     glLightf (GL_LIGHT2, GL_LINEAR_ATTENUATION, localAttLin);
     glLightf (GL_LIGHT2, GL_QUADRATIC_ATTENUATION, localAttQua);
+    
+    glLightfv(GL_LIGHT3, GL_DIFFUSE, localDif );
+    glLightf (GL_LIGHT3, GL_SPOT_EXPONENT , concentracao);
+    glLightf (GL_LIGHT3, GL_SPOT_CUTOFF, ang);
+    
+	if(ctrlLant==1){
+	    glEnable(GL_LIGHT3);
+    
+        GLfloat ponto[4] = {obsP[0], obsP[1], obsP[2], 1.0};
+	
+	    glLightfv(GL_LIGHT3, GL_SPOT_DIRECTION, lookLant );
+        glLightfv(GL_LIGHT3, GL_POSITION, ponto );
+    }
+	else
+	    glDisable(GL_LIGHT3);
+
     glShadeModel(GL_SMOOTH);
     apagaLuzes();
 }
@@ -621,6 +644,13 @@ void cenario(int view)
 	criaCaixa(5.55, 0.2, 0.8, 10);
 	criaCaixa(5.7, 0.6, 0.5, 55);
 	
+	glDisable(GL_TEXTURE_2D);
+	glColor4f(1,1,0.6,1);
+	criaHorizontal(sala3[0]+2.5, alturaEdificio+1.5-0.05, sala3[1]-2.5, sala3[0]+3, alturaEdificio+1.5-0.05, sala3[1]-4);
+	glColor4f(0.3,0.3,0.3,1);
+	criaHorizontal(sala3[0]+5.5, alturaEdificio+1.5-0.05, sala3[1]-2.5, sala3[0]+6, alturaEdificio+1.5-0.05, sala3[1]-4);
+	glEnable(GL_TEXTURE_2D);
+	
 	apagaLuzes();
 	
 	// Edifício
@@ -660,14 +690,14 @@ void display(void)
 	
 	// Camara
 	GLfloat obsL [] = {cos(anguloH-3.14/2)+obsP[0], obsP[1]+anguloV+0.04*sin(passo), sin(anguloH-3.14/2)+obsP[2]};
+	GLfloat lookLant[] = {obsL[0]-obsP[0], obsL[1]-obsP[1] ,obsL[2]-obsP[2], 0};
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(obsP[0], obsP[1]+0.04*sin(passo), obsP[2], obsL[0], obsL[1], obsL[2], 0, 1, 0);
 	
-	iluminacao();
-	
 	// Objectos do cenário
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	iluminacao(lookLant);
 	cenario(PERSPECTIVE);
 	
 	// Minimapa
@@ -768,6 +798,12 @@ void keyPress(unsigned char key, int x, int y)
 		case 27: // Esq
 			exit(0);
 			break;
+		
+		case 'l':
+        case 'L':
+            ctrlLant+=1;
+            ctrlLant%=2;
+            break;
 	}
 }
 
@@ -971,10 +1007,10 @@ GLfloat colisoesZ(GLfloat x, GLfloat z)
 	
 	// Sala 3
 	// Parede de blocos de vidro
-	if (x > sala3[2]-2.1-0.15 && x < sala3[2]-1.1+0.15 && z < sala3[3]+2.1+0.15 && obsP[2] > z)
+	if (x > sala3[2]-2.1-0.15 && x < sala3[2]-1.1+0.15 && z < sala3[3]+2.1+0.15 && z > sala3[3]+1.8 && obsP[2] > z)
 		if (sala3[2]-x <= -(sala3[3]-z))
 			return obsP[2];
-	if (x > sala3[2]-2.1 && x < sala3[2]-1.1+0.15 && z > sala3[3]+1.8-0.15 && obsP[2] < z)
+	if (x > sala3[2]-2.1 && x < sala3[2]-1.1+0.15 && z > sala3[3]+1.8-0.15 && z < sala3[3]+2.1 && obsP[2] < z)
 		return obsP[2];
 		
 	return z;
