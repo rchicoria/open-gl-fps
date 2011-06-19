@@ -618,6 +618,7 @@ void edificio()
 	glBindTexture(GL_TEXTURE_2D,texture[2]);
 	
 	apagaLuzes();
+	glDisable(GL_LIGHT3);
 	
 	for (int i=0; i<furosTam; i++)
 	{
