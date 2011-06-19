@@ -69,7 +69,8 @@ GLfloat localPos3[4] ={5, alturaEdificio, -3, 1.0};
 GLfloat localAttCon =1.0;
 GLfloat localAttLin =0.05;
 GLfloat localAttQua =0.0;
-GLint lampadas[] = {true, true};
+GLint lampadas[] = {true, true, true};
+GLint fundidas[] = {false, false, false};
 
 //lanterna
 
@@ -920,7 +921,8 @@ void keyPress(unsigned char key, GLint x, GLint y)
 		case '1':
 		case '2':
 		case '3':
-			lampadas[key-'1'] = !lampadas[key-'1'];
+			if (fundidas[key-'1'] == false)
+				lampadas[key-'1'] = !lampadas[key-'1'];
 			break;
 		
 		case 'c':
@@ -1022,6 +1024,29 @@ bool acertaAlvo(GLfloat* bala)
 }
 
 /*
+ *	Verifica se o tiro acertou em algum candeeiro e fá-lo estragar-se em caso afirmativo
+ */
+bool acertaCandeeiro(GLfloat* bala)
+{
+	// Sala 2
+	if (bala[0] >= sala2[0]+1 && bala[0] <= sala2[0]+1.3 && bala[1] >= alturaSala12-0.05 && bala[2] <= sala2[1]-1.35 && bala[2] >= sala2[1]-1.7)
+	{
+		lampadas[1] = false;
+		fundidas[1] = true;
+		return true;
+	}
+	// Sala 3   (sala3[0]+2.5, alturaEdificio+1.5-0.05, sala3[1]-2.5, sala3[0]+3, alturaEdificio+1.5-0.05, sala3[1]-4);
+	else if (bala[0] >= sala3[0]+2.5 && bala[0] <= sala3[0]+3 && bala[1] > alturaEdificio+1.5-0.05 && bala[2] <= sala3[1]-2.5 && bala[2] >= sala3[1]-4)
+	{
+		lampadas[2] = false;
+		fundidas[2] = true;
+		return true;
+	}
+	// Não encontrou
+	return false;
+}
+
+/*
  *	Descobre onde é que o tiro acertou e faz qualquer coisa aí
  */
 void tiro(GLfloat x, GLfloat y, GLfloat z)
@@ -1036,6 +1061,9 @@ void tiro(GLfloat x, GLfloat y, GLfloat z)
 		
 		// Alvos
 		if (acertaAlvo(bala))
+			break;
+		// Candeeiros
+		if (acertaCandeeiro(bala))
 			break;
 		
 		// Paredes exteriores
@@ -1248,7 +1276,7 @@ GLfloat colisoesX(GLfloat x, GLfloat z)
 	if (x > sala3[2]-2 && x < sala3[2]-2+0.15 && z < sala3[1]-2+0.15 && z > sala3[1]-2.1-0.15 && obsP[0] > x)
 		return obsP[0];
 	// Caixas
-	if (x > 5.7 && x < 5.8 && z > -1 && z < 0 && obsP[0] < x)
+	if (x > 5.7 && x < 5.8 && z > -1.2 && z < 0 && obsP[0] < x)
 		return obsP[0];
 		
 	return x;
@@ -1294,7 +1322,7 @@ GLfloat colisoesZ(GLfloat x, GLfloat z)
 	if (x > sala3[2]-1.1 && z < sala3[3]+1.95 && obsP[2] > z)
 		return obsP[2];
 	// Caixas
-	if (x > 5.7 && x < sala3[0]+5 && z > -1 && z < -0.9 && obsP[2] < z)
+	if (x > 5.7 && x < sala3[0]+5 && z > -1.2 && z < -1.1 && obsP[2] < z)
 		return obsP[2];
 		
 	return z;
